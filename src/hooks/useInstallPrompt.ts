@@ -13,6 +13,15 @@ export function useInstallPrompt() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [installState, setInstallState] = useState<InstallState>('idle');
   const [browserContext, setBrowserContext] = useState<BrowserContextType>('unknown');
+  
+  // Diagnostic state
+  const [diagnostics, setDiagnostics] = useState({
+    swRegistered: false,
+    hasManifest: false,
+    isHttps: false,
+    eventCaptured: false,
+    platform: '',
+  });
 
   // Track Analytics
   const trackInstallEvent = (event: string) => {
@@ -26,6 +35,7 @@ export function useInstallPrompt() {
     // 1. Detect if already installed
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+      console.log('[PWA Diagnostics] Display Mode Standalone?', isStandalone);
       setIsInstalled(isStandalone);
       if (isStandalone) setInstallState('installed');
     };
@@ -71,11 +81,34 @@ export function useInstallPrompt() {
     const dismissed = localStorage.getItem("pwa_install_dismissed");
     if (dismissed === "true") setIsDismissed(true);
 
+    // Run basic diagnostics
+    const isHttps = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+    console.log('[PWA Diagnostics] Is HTTPS or Localhost?', isHttps);
+    
+    const checkSW = async () => {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        console.log('[PWA Diagnostics] Service Workers Registered:', regs.length);
+        setDiagnostics(prev => ({ ...prev, swRegistered: regs.length > 0, isHttps, platform: navigator.platform }));
+      }
+    };
+    
+    const checkManifest = () => {
+      const manifest = document.querySelector('link[rel="manifest"]');
+      console.log('[PWA Diagnostics] Manifest found in DOM?', !!manifest);
+      setDiagnostics(prev => ({ ...prev, hasManifest: !!manifest }));
+    };
+
+    checkSW();
+    checkManifest();
+
     // 4. Handle beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('[PWA Diagnostics] beforeinstallprompt event fired inside hook!');
       e.preventDefault();
       setDeferredPrompt(e);
       setIsInstallPromptSupported(true);
+      setDiagnostics(prev => ({ ...prev, eventCaptured: true }));
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -87,8 +120,10 @@ export function useInstallPrompt() {
 
   const promptInstall = async () => {
     trackInstallEvent('install_clicked');
+    console.log('[PWA Diagnostics] Install prompt triggered by user');
     
     if (!isInstallPromptSupported || !deferredPrompt) {
+      console.log('[PWA Diagnostics] Install prompt unsupported or missing. Falling back to modal.');
       // If not supported natively, return false so the UI can show the manual fallback modal
       return false;
     }
@@ -100,18 +135,25 @@ export function useInstallPrompt() {
     await new Promise(r => setTimeout(r, 600));
     setInstallState('installing');
     
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === "accepted") {
-      trackInstallEvent('install_accepted');
-      setDeferredPrompt(null);
-      setIsInstallPromptSupported(false);
-      // Actual install success is caught by the 'appinstalled' event listener above
-    } else {
-      trackInstallEvent('install_dismissed');
-      setInstallState('idle');
-      toast("Installation cancelled", { description: "You can install it later from the menu." });
+    try {
+      console.log('[PWA Diagnostics] Calling deferredPrompt.prompt()');
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('[PWA Diagnostics] User choice outcome:', outcome);
+      
+      if (outcome === "accepted") {
+        trackInstallEvent('install_accepted');
+        setDeferredPrompt(null);
+        setIsInstallPromptSupported(false);
+        // Actual install success is caught by the 'appinstalled' event listener above
+      } else {
+        trackInstallEvent('install_dismissed');
+        setInstallState('idle');
+        toast("Installation cancelled", { description: "You can install it later from the menu." });
+      }
+    } catch (error) {
+      console.error('[PWA Diagnostics] Error during prompt/userChoice:', error);
+      setInstallState('error');
     }
     
     return true; // Handled natively
@@ -128,6 +170,7 @@ export function useInstallPrompt() {
     browserContext,
     isInstallPromptSupported,
     isDismissed, 
+    diagnostics,
     promptInstall, 
     dismissPrompt 
   };
