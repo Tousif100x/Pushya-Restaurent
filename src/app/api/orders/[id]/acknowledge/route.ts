@@ -3,10 +3,11 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     const order = await prisma.order.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: { isAcknowledged: true }
     });
     

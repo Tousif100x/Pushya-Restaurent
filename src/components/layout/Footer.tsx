@@ -81,7 +81,9 @@ export function Footer() {
                 <span className="text-background font-medium">11:00 AM - 11:00 PM</span>
               </li>
               <li className="pt-4 border-t border-forest-soft mt-4">
-                <p className="text-sm">We provide home delivery up to {restaurantDetails.deliveryRadius}.</p>
+                <p className="text-xs text-muted-foreground">
+                  We provide home delivery up to {restaurantDetails.deliveryRadiusKm}km.
+                </p>
               </li>
             </ul>
           </div>

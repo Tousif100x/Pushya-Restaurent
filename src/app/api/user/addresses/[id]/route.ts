@@ -18,14 +18,15 @@ async function getUser() {
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const userId = await getUser();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    const resolvedParams = await params;
     // Ensure the address belongs to the user
     await prisma.address.deleteMany({
-      where: { id: params.id, userId }
+      where: { id: resolvedParams.id, userId }
     });
     return NextResponse.json({ success: true });
   } catch (error) {
