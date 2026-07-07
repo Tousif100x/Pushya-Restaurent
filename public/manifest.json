@@ -1,0 +1,21 @@
+{
+  "name": "Pushya Pizza & Sandwich Planet",
+  "short_name": "Pushya Planet",
+  "description": "Premium restaurant for pizzas, sandwiches, and more.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F5EE",
+  "theme_color": "#10261B",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
