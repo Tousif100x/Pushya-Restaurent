@@ -230,6 +230,7 @@ export function Header() {
                     )}
                     <a href={`https://wa.me/91${restaurantDetails.whatsapp}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm hover:text-gold transition-colors">
                       <MessageCircle className="w-4 h-4 text-green-600" /> WhatsApp
+                    </a>
                     <a href={restaurantDetails.mapLink} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm hover:text-gold transition-colors">
                       <MapPinIcon className="w-4 h-4 text-red-500" /> View on Map
                     </a>
