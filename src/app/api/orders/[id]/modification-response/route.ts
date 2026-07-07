@@ -16,7 +16,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await prisma.$transaction(async (tx) => {
       if (action === 'cancel') {
         await tx.order.update({
-          where: { id: params.id },
+          where: { id: id },
           data: { status: 'CANCELLED' }
         });
         return;
@@ -51,7 +51,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
 
       await tx.order.update({
-        where: { id: params.id },
+        where: { id: id },
         data: { 
           status: 'APPROVED',
           totalAmount: newTotal
