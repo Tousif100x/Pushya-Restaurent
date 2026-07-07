@@ -67,8 +67,19 @@ export function AdminOrderCard({ order, onUpdateStatus, onModifyOrder }: { order
               {new Date(order.createdAt).toLocaleTimeString()} • {order.items.length} items
             </p>
             <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
-              {order.customerAddress}
+              {order.formattedAddress || order.customerAddress}
             </p>
+            {order.latitude && order.longitude && (
+              <a 
+                href={`https://www.google.com/maps/dir/?api=1&destination=${order.latitude},${order.longitude}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-blue-600 hover:underline font-bold mt-1 inline-block"
+                onClick={(e) => e.stopPropagation()}
+              >
+                [🧭 Navigate to Location]
+              </a>
+            )}
           </div>
           <Button variant="ghost" size="icon" onClick={() => setExpanded(!expanded)} className="md:hidden">
             {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}

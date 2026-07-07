@@ -44,17 +44,29 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-gold shrink-0" />
-                <span>+91 {restaurantDetails.phone}</span>
+                <div className="flex flex-col">
+                  <span>+91 {restaurantDetails.phone}</span>
+                  {restaurantDetails.secondaryPhone && (
+                    <span className="text-xs text-muted-foreground">Alt: +91 {restaurantDetails.secondaryPhone}</span>
+                  )}
+                </div>
               </li>
             </ul>
             <div className="mt-6 flex flex-col gap-3">
               <Button asChild className="bg-gold text-forest hover:bg-gold/90 w-full justify-start">
                 <a href={`tel:+91${restaurantDetails.phone}`}>
-                  <Phone className="mr-2 h-4 w-4" /> Call Now
+                  <Phone className="mr-2 h-4 w-4" /> Call: {restaurantDetails.phone}
                 </a>
               </Button>
+              {restaurantDetails.secondaryPhone && (
+                <Button asChild variant="outline" className="border-gold/50 text-foreground hover:bg-gold/10 w-full justify-start">
+                  <a href={`tel:+91${restaurantDetails.secondaryPhone}`}>
+                    <Phone className="mr-2 h-4 w-4 text-gold" /> Alt: {restaurantDetails.secondaryPhone}
+                  </a>
+                </Button>
+              )}
               <Button asChild variant="outline" className="border-forest-soft text-foreground hover:bg-forest-soft w-full justify-start">
-                <a href={`https://wa.me/91${restaurantDetails.phone}`} target="_blank" rel="noreferrer">
+                <a href={`https://wa.me/91${restaurantDetails.whatsapp}`} target="_blank" rel="noreferrer">
                   <MessageCircle className="mr-2 h-4 w-4 text-green-500" /> WhatsApp Us
                 </a>
               </Button>

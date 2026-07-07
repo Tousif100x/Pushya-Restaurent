@@ -284,7 +284,7 @@ export default function Home() {
                     <p className="text-background/70">{service.description}</p>
                     <div className="pt-4 mt-auto">
                       <Button asChild variant="link" className="text-gold hover:text-gold/80 p-0">
-                         <a href={`https://wa.me/91${restaurantDetails.phone}`} target="_blank" rel="noreferrer">Enquire Now <ArrowRight className="ml-2 h-4 w-4" /></a>
+                         <a href={`https://wa.me/91${restaurantDetails.whatsapp}`} target="_blank" rel="noreferrer">Enquire Now <ArrowRight className="ml-2 h-4 w-4" /></a>
                       </Button>
                     </div>
                   </CardContent>

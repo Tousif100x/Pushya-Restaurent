@@ -1,9 +1,22 @@
 export const restaurantDetails = {
   name: "Pushya Pizza & Sandwich Planet",
+  slogan: "Taste Jo Dil Ko Bhaye",
   phone: "9098382993",
+  secondaryPhone: "9111221940",
+  whatsapp: "9098382993",
   address: "Shri Krishna Paradise, Near, Rau Cir, Rau, Indore",
-  deliveryRadius: "3–4 KM",
+  latitude: 22.6378,
+  longitude: 75.8073,
   mapLink: "https://maps.google.com/?q=Pushya+Pizza+and+Sandwich+Planet+Rau",
+  openingTime: "10:00 AM",
+  closingTime: "10:00 PM",
+  deliveryRadiusKm: 4,
+  baseDeliveryCharge: 20,
+  distanceSlabs: [
+    { maxKm: 2, charge: 20 },
+    { maxKm: 4, charge: 40 }
+  ],
+  estimatedPrepTime: "25-30 mins"
 };
 
 export const services = [
@@ -65,9 +78,9 @@ export const offers = [
   {
     id: "bhojan-thali",
     title: "Unlimited Bhojan Thali",
-    price: 69,
+    price: 99,
     description: "Unlimited Home Style Meal (On the shop delivery 120)",
-    note: "Daily Special",
+    color: "bg-orange-500",
     image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?q=80&w=800&auto=format&fit=crop",
   }
 ];
@@ -241,7 +254,7 @@ export const menuCategories = [
       { id: "pav-bhaji", name: "Pav Bhaji", price: 69, isVeg: true },
       { id: "vada-pav", name: "Vada Pav", price: 35, isVeg: true },
       { id: "hot-dog", name: "Hot Dog", price: 59, isVeg: true },
-      { id: "dal-shole", name: "Dal Shole", price: 79, isVeg: true },
+      { id: "dahi-shole", name: "Dahi Shole", price: 79, isVeg: true },
     ]
   },
   {

@@ -114,11 +114,20 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                   <p className="text-red-600 font-medium max-w-sm mx-auto">
                     The restaurant is currently busy and hasn't accepted your order yet. Please call us directly to confirm your order!
                   </p>
-                  <Button asChild className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 mt-2 h-12 text-lg">
-                    <a href={`tel:+91${restaurantDetails.phone}`}>
-                      <PhoneCall className="mr-2 h-5 w-5" /> Call Now: {restaurantDetails.phone}
-                    </a>
-                  </Button>
+                  <div className="flex flex-col sm:flex-row justify-center gap-3 mt-4">
+                    <Button asChild className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 h-12 text-lg">
+                      <a href={`tel:+91${restaurantDetails.phone}`}>
+                        <PhoneCall className="mr-2 h-5 w-5" /> Call: {restaurantDetails.phone}
+                      </a>
+                    </Button>
+                    {restaurantDetails.secondaryPhone && (
+                      <Button asChild variant="outline" className="border-red-600 text-red-600 hover:bg-red-50 rounded-full px-8 h-12 text-lg">
+                        <a href={`tel:+91${restaurantDetails.secondaryPhone}`}>
+                          <PhoneCall className="mr-2 h-5 w-5" /> Alt: {restaurantDetails.secondaryPhone}
+                        </a>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">

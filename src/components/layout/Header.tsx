@@ -221,11 +221,15 @@ export function Header() {
                   <div className="bg-muted/50 rounded-xl p-4 space-y-3">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Quick Contact</h4>
                     <a href={`tel:+91${restaurantDetails.phone}`} className="flex items-center gap-3 text-sm hover:text-gold transition-colors">
-                      <Phone className="w-4 h-4 text-forest" /> Call Restaurant
+                      <Phone className="w-4 h-4 text-forest" /> Call: {restaurantDetails.phone}
                     </a>
-                    <a href={`https://wa.me/91${restaurantDetails.phone}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm hover:text-gold transition-colors">
+                    {restaurantDetails.secondaryPhone && (
+                      <a href={`tel:+91${restaurantDetails.secondaryPhone}`} className="flex items-center gap-3 text-sm hover:text-gold transition-colors text-muted-foreground ml-7">
+                        Alt: {restaurantDetails.secondaryPhone}
+                      </a>
+                    )}
+                    <a href={`https://wa.me/91${restaurantDetails.whatsapp}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm hover:text-gold transition-colors">
                       <MessageCircle className="w-4 h-4 text-green-600" /> WhatsApp
-                    </a>
                     <a href={restaurantDetails.mapLink} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm hover:text-gold transition-colors">
                       <MapPinIcon className="w-4 h-4 text-red-500" /> View on Map
                     </a>

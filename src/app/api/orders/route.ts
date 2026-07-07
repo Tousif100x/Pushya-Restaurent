@@ -4,7 +4,12 @@ import prisma from "@/lib/prisma";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { userId, customerName, customerPhone, customerAddress, latitude, longitude, distanceKm, totalAmount, deliveryFee, items } = body;
+    const { 
+      userId, customerName, customerPhone, customerAddress, 
+      formattedAddress, houseNumber, landmark, deliveryInstructions,
+      latitude, longitude, distanceKm, deliveryDistance, totalAmount, 
+      deliveryFee, deliveryCharge, items 
+    } = body;
 
     const order = await prisma.order.create({
       data: {
@@ -12,12 +17,19 @@ export async function POST(req: Request) {
         customerName,
         customerPhone,
         customerAddress,
+        formattedAddress,
+        houseNumber,
+        landmark,
+        deliveryInstructions,
         latitude,
         longitude,
         distanceKm,
+        deliveryDistance,
         totalAmount,
         deliveryFee,
+        deliveryCharge,
         status: "PENDING",
+        isAcknowledged: false,
         items: {
           create: items.map((item: any) => ({
             itemId: item.id,
@@ -40,9 +52,18 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
+    const status = searchParams.get('status');
+    const isAcknowledgedParam = searchParams.get('isAcknowledged');
+
+    const whereClause: any = {};
+    if (userId) whereClause.userId = userId;
+    if (status) whereClause.status = status;
+    if (isAcknowledgedParam !== null) {
+      whereClause.isAcknowledged = isAcknowledgedParam === 'true';
+    }
 
     const orders = await prisma.order.findMany({
-      where: userId ? { userId } : undefined,
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       include: { items: true },
     });

@@ -19,8 +19,25 @@ model User {
   landmark        String?
   instructions    String?
   orders          Order[]
+  addresses       Address[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model Address {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label            String   @default("Other") // Home, Work, Other
+  formattedAddress String
+  houseNumber      String?
+  landmark         String?
+  instructions     String?
+  latitude         Float
+  longitude        Float
+  isDefault        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 
@@ -28,18 +45,26 @@ model Order {
   id              String      @id @default(uuid())
   userId          String?
   user            User?       @relation(fields: [userId], references: [id])
-  customerName    String
-  customerPhone   String
-  customerAddress String?
-  latitude        Float?
-  longitude       Float?
-  distanceKm      Float?
-  totalAmount     Float
-  deliveryFee     Float       @default(0)
-  status          String      @default("PENDING") // PENDING, MODIFICATION_REQUESTED, APPROVED, OUT_FOR_DELIVERY, DELIVERED, CANCELLED
-  items           OrderItem[]
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  customerName         String
+  customerPhone        String
+  customerAddress      String?
+  formattedAddress     String?
+  houseNumber          String?
+  floor                String?
+  landmark             String?
+  deliveryInstructions String?
+  latitude             Float?
+  longitude            Float?
+  distanceKm           Float?
+  deliveryDistance     Float?
+  totalAmount          Float
+  deliveryFee          Float       @default(0)
+  deliveryCharge       Float?
+  status               String      @default("PENDING") // PENDING, MODIFICATION_REQUESTED, APPROVED, OUT_FOR_DELIVERY, DELIVERED, CANCELLED
+  isAcknowledged       Boolean     @default(false)
+  items                OrderItem[]
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
 }
 
 model OrderItem {

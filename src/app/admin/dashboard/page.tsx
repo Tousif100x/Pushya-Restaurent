@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AdminOrderCard } from "./OrderCard";
+import { OrderAlarmSystem } from "@/components/admin/OrderAlarmSystem";
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -45,14 +46,6 @@ export default function AdminDashboard() {
         const res = await fetch("/api/orders");
         if (res.ok) {
           const data = await res.json();
-          // Check if there are new orders to play sound and notify
-          if (orders.length > 0 && data.length > orders.length) {
-             const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-             audio.play().catch(e => console.log("Audio play blocked", e));
-             
-             setNewOrderAlert(true);
-             setTimeout(() => setNewOrderAlert(false), 5000); // Hide after 5s
-          }
           setOrders(data);
         }
       } catch (error) {
@@ -107,7 +100,9 @@ export default function AdminDashboard() {
   const pendingOrders = orders.filter(o => o.status === 'PENDING').length;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24 space-y-8 bg-muted/30 min-h-screen">
+    <>
+      <OrderAlarmSystem />
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24 space-y-8 bg-muted/30 min-h-screen">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight font-serif text-forest">Dashboard</h2>
         <div className="flex items-center space-x-2">
@@ -209,5 +204,6 @@ export default function AdminDashboard() {
         </div>
       )}
     </div>
+    </>
   );
 }

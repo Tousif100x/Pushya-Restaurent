@@ -14,10 +14,9 @@ import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { restaurantDetails } from "@/data/menu";
-import { calculateDistance } from "@/lib/utils";
+import { calculateDeliveryCharge } from "@/lib/locationUtils";
 
-// Dynamically import Leaflet map component to prevent SSR window issues
-const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), { ssr: false });
+const LocationPicker = dynamic(() => import("@/components/map/LocationPicker").then(mod => mod.LocationPicker), { ssr: false });
 
 export default function CheckoutPage() {
   const { items, getSubtotal, getTotalItems, clearCart } = useCartStore();
@@ -51,31 +50,23 @@ export default function CheckoutPage() {
     }
   }, [isAuthenticated, user]);
   
-  const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  const [location, setLocation] = useState<{lat: number, lng: number, address: string, distanceKm: number, isValid: boolean} | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const subtotal = getSubtotal();
-  const baseDeliveryFee = 30; 
-  // Add ₹10 if distance is strictly greater than 2km
-  const deliveryFee = distanceKm && distanceKm > 2 ? baseDeliveryFee + 10 : baseDeliveryFee; 
+  const deliveryFee = location && location.isValid ? calculateDeliveryCharge(location.distanceKm) : 0; 
   const total = subtotal + deliveryFee;
 
-  // Restaurant Coordinates (approx for Rau Circle, Indore)
-  const RESTAURANT_LAT = 22.6288;
-  const RESTAURANT_LNG = 75.8197;
-
-  useEffect(() => {
-    if (location) {
-      const dist = calculateDistance(RESTAURANT_LAT, RESTAURANT_LNG, location.lat, location.lng);
-      setDistanceKm(dist);
-    }
-  }, [location]);
+  // We no longer manually calculate distance here; LocationPicker provides it.
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!location) {
       alert("Please select your delivery location on the map.");
+      return;
+    }
+    if (!location.isValid) {
+      alert(`Sorry, this location is outside our delivery area. We only deliver up to ${restaurantDetails.deliveryRadiusKm}km.`);
       return;
     }
     
@@ -89,12 +80,18 @@ export default function CheckoutPage() {
           userId: user?.id || null,
           customerName: formData.name,
           customerPhone: formData.phone,
-          customerAddress: `${formData.address}${formData.landmark ? `, Near ${formData.landmark}` : ""}${formData.instructions ? ` (Note: ${formData.instructions})` : ""}`,
+          customerAddress: `${formData.address}, ${location.address}`,
+          formattedAddress: location.address,
+          houseNumber: formData.address,
+          landmark: formData.landmark,
+          deliveryInstructions: formData.instructions,
           latitude: location.lat,
           longitude: location.lng,
-          distanceKm: distanceKm,
+          distanceKm: location.distanceKm,
+          deliveryDistance: location.distanceKm,
           totalAmount: total,
           deliveryFee: deliveryFee,
+          deliveryCharge: deliveryFee,
           items: items.map(item => ({
             id: item.id,
             name: item.name,
@@ -200,21 +197,14 @@ export default function CheckoutPage() {
                     <div className="space-y-2 pt-2 border-t border-border mt-6">
                       <Label className="text-base font-semibold">Delivery Location (Pin on Map)</Label>
                       <LocationPicker onLocationSelect={(loc) => setLocation(loc)} />
-                      {location && distanceKm !== null && (
-                        <p className="text-xs text-green-600 flex items-center mt-1">
-                          <CheckCircle2 className="h-3 w-3 mr-1" /> 
-                          Location captured. Distance: {distanceKm.toFixed(1)} km 
-                          {distanceKm > 2 && " (₹10 extra charge applies)"}
-                        </p>
-                      )}
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="address">Complete Address</Label>
+                      <Label htmlFor="address">House / Flat No, Building Name</Label>
                       <Input 
                         id="address" 
                         required 
-                        placeholder="House/Flat No, Building Name, Street" 
+                        placeholder="House No, Apartment Name" 
                         value={formData.address}
                         onChange={(e) => setFormData({...formData, address: e.target.value})}
                       />
@@ -257,6 +247,13 @@ export default function CheckoutPage() {
                         <Phone className="mr-2 h-4 w-4" /> Call Us
                       </a>
                     </Button>
+                    {restaurantDetails.secondaryPhone && (
+                      <Button asChild variant="outline" size="sm" className="border-forest/50 text-forest hover:bg-forest-soft">
+                        <a href={`tel:+91${restaurantDetails.secondaryPhone}`}>
+                          <Phone className="mr-2 h-4 w-4" /> Alt
+                        </a>
+                      </Button>
+                    )}
                     <Button asChild variant="outline" size="sm" className="border-green-600 text-green-600 hover:bg-green-50">
                       <a href={`https://wa.me/91${restaurantDetails.phone}`} target="_blank" rel="noreferrer">
                         <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp

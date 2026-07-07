@@ -98,14 +98,21 @@ export default function OrderSuccessPage() {
 
         <FadeIn delay={0.3} className="mt-12 text-center">
           <p className="text-sm text-muted-foreground mb-4">Have a question about your order?</p>
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-4 flex-wrap">
             <Button asChild variant="ghost" className="text-forest hover:text-gold hover:bg-transparent">
               <a href={`tel:+91${restaurantDetails.phone}`}>
-                <Phone className="mr-2 h-4 w-4" /> Call Restaurant
+                <Phone className="mr-2 h-4 w-4" /> Call: {restaurantDetails.phone}
               </a>
             </Button>
+            {restaurantDetails.secondaryPhone && (
+              <Button asChild variant="ghost" className="text-forest hover:text-gold hover:bg-transparent">
+                <a href={`tel:+91${restaurantDetails.secondaryPhone}`}>
+                  <Phone className="mr-2 h-4 w-4" /> Alt: {restaurantDetails.secondaryPhone}
+                </a>
+              </Button>
+            )}
             <Button asChild variant="ghost" className="text-green-600 hover:text-green-700 hover:bg-transparent">
-              <a href={`https://wa.me/91${restaurantDetails.phone}`} target="_blank" rel="noreferrer">
+              <a href={`https://wa.me/91${restaurantDetails.whatsapp}`} target="_blank" rel="noreferrer">
                 <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp Us
               </a>
             </Button>

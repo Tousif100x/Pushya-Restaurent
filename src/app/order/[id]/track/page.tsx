@@ -111,11 +111,18 @@ export default function OrderTrackingPage() {
                 <div className="space-y-4">
                   <Button asChild className="w-full bg-forest text-gold hover:bg-forest/90 h-12">
                     <a href={`tel:+91${restaurantDetails.phone}`}>
-                      <Phone className="mr-2 h-4 w-4" /> Call Restaurant
+                      <Phone className="mr-2 h-4 w-4" /> Call: {restaurantDetails.phone}
                     </a>
                   </Button>
+                  {restaurantDetails.secondaryPhone && (
+                    <Button asChild variant="outline" className="w-full border-forest text-forest hover:bg-forest-soft h-12">
+                      <a href={`tel:+91${restaurantDetails.secondaryPhone}`}>
+                        <Phone className="mr-2 h-4 w-4" /> Alt: {restaurantDetails.secondaryPhone}
+                      </a>
+                    </Button>
+                  )}
                   <Button asChild variant="outline" className="w-full border-green-600 text-green-600 hover:bg-green-50 h-12">
-                    <a href={`https://wa.me/91${restaurantDetails.phone}`} target="_blank" rel="noreferrer">
+                    <a href={`https://wa.me/91${restaurantDetails.whatsapp}`} target="_blank" rel="noreferrer">
                       <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp Support
                     </a>
                   </Button>
