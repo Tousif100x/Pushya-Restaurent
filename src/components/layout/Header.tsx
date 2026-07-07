@@ -76,7 +76,6 @@ export function Header() {
             </button>
           )}
           
-          <Link href="/admin/dashboard" className="text-muted-foreground hover:text-forest transition-colors text-sm">Admin</Link>
         </nav>
 
         <div className="flex items-center gap-4">

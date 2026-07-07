@@ -7,7 +7,7 @@ export function getRestaurantStatus() {
   const timeInMinutes = currentHour * 60 + currentMinute;
   
   const openTime = 10 * 60; // 10:00 AM
-  const closeTime = 23 * 60 + 30; // 11:30 PM
+  const closeTime = 22 * 60; // 10:00 PM
 
   const isOpen = timeInMinutes >= openTime && timeInMinutes < closeTime;
   
@@ -15,7 +15,7 @@ export function getRestaurantStatus() {
     return {
       isOpen: true,
       text: "Open Now",
-      subtext: "Closes at 11:30 PM"
+      subtext: "Closes at 10:00 PM"
     };
   } else {
     return {
