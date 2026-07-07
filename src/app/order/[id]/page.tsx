@@ -97,7 +97,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="bg-background min-h-screen pt-24 pb-20">
-      <div className="container mx-auto px-4 max-w-2xl">
+      <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn>
           <div className="text-center mb-8">
             <h1 className="font-serif text-3xl font-bold text-forest mb-2">Order Status</h1>

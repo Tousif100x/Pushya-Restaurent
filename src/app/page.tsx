@@ -66,7 +66,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/50 to-transparent" />
             
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="container mx-auto px-4 lg:px-8 text-center text-background">
+              <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-background">
                 {index === currentSlide && (
                   <StaggerContainer className="max-w-3xl mx-auto space-y-6">
                     <StaggerItem y={30}>
@@ -113,7 +113,7 @@ export default function Home() {
 
       {/* Featured Signatures */}
       <section className="py-24 bg-background">
-        <div className="container mx-auto px-4 lg:px-8">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SlideUp>
             <div className="text-center mb-16">
               <h4 className="text-gold font-medium tracking-widest uppercase mb-3">Serve Quality Food</h4>
@@ -124,7 +124,7 @@ export default function Home() {
             </div>
           </SlideUp>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {featuredSignatures.map((item, index) => (
               <SlideUp key={item.id} delay={index * 0.1}>
                 <Link href="/menu" className="group block">
@@ -162,8 +162,8 @@ export default function Home() {
 
       {/* Alternating Section: Weekly Offers */}
       <section id="offers" className="py-24 bg-forest text-background">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-16 items-center">
             <SlideUp>
               <div className="space-y-6">
                 <h4 className="text-gold font-medium tracking-widest uppercase">Special Deals</h4>
@@ -206,7 +206,7 @@ export default function Home() {
 
       {/* Categories */}
       <section className="py-24 bg-background">
-        <div className="container mx-auto px-4 lg:px-8">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SlideUp>
             <div className="text-center mb-16">
               <h2 className="font-serif text-4xl font-bold text-forest">Explore by Category</h2>
@@ -235,7 +235,7 @@ export default function Home() {
 
       {/* Services */}
       <section id="services" className="py-24 bg-forest-soft text-background">
-        <div className="container mx-auto px-4 lg:px-8">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <SlideUp>
               <h4 className="text-gold font-medium tracking-widest uppercase mb-3">Special Services</h4>
@@ -268,7 +268,7 @@ export default function Home() {
       
       {/* Testimonials / Review System Placeholder */}
       <section className="py-24 bg-background">
-        <div className="container mx-auto px-4 lg:px-8 text-center">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <SlideUp>
             <h2 className="font-serif text-4xl font-bold text-forest mb-12">What Our Customers Say</h2>
             <div className="max-w-2xl mx-auto py-12 px-6 bg-muted rounded-2xl border border-border border-dashed">

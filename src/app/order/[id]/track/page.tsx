@@ -35,7 +35,7 @@ export default function OrderTrackingPage() {
 
   return (
     <div className="bg-background min-h-screen pt-24 pb-20">
-      <div className="container mx-auto px-4 max-w-3xl">
+      <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <FadeIn>
           <h1 className="font-serif text-4xl font-bold text-forest mb-2">Track Order</h1>

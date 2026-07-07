@@ -12,6 +12,8 @@ import Image from "next/image";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
 import { useRouter } from "next/navigation";
+import { useInstallPrompt } from "@/hooks/useInstallPrompt";
+import { Download } from "lucide-react";
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,6 +22,7 @@ export function Header() {
   const { items, removeItem, updateQuantity, getSubtotal } = useCartStore();
   const { user, isAuthenticated, checkAuth } = useAuthStore();
   const router = useRouter();
+  const { isInstallable, promptInstall } = useInstallPrompt();
 
   useEffect(() => {
     setIsMounted(true);
@@ -63,6 +66,13 @@ export function Header() {
           <Link href="/track" className="hover:text-gold transition-colors">Track Order</Link>
           <Link href="/#offers" className="hover:text-gold transition-colors">Offers</Link>
           <Link href="/#contact" className="hover:text-gold transition-colors">Contact</Link>
+          
+          {isMounted && isInstallable && (
+            <button onClick={promptInstall} className="flex items-center gap-1 text-gold hover:text-gold/80 font-bold transition-colors">
+              <Download className="h-4 w-4" /> Install App
+            </button>
+          )}
+          
           <Link href="/admin/dashboard" className="text-muted-foreground hover:text-forest transition-colors text-sm">Admin</Link>
         </nav>
 
@@ -184,6 +194,13 @@ export function Header() {
                 <Link href="/services" className="hover:text-gold transition-colors font-medium border-b pb-2">Services & Offers</Link>
                 <Link href="/#offers" className="hover:text-gold transition-colors font-medium border-b pb-2">Combos</Link>
                 <Link href="/#contact" className="hover:text-gold transition-colors font-medium border-b pb-2">Contact & Location</Link>
+                
+                {isMounted && isInstallable && (
+                  <button onClick={promptInstall} className="flex items-center gap-2 bg-gold/10 text-gold font-bold p-3 rounded-lg border border-gold/20 hover:bg-gold/20 transition-colors text-left mt-2">
+                    <Download className="h-5 w-5" /> Install Pushya App
+                  </button>
+                )}
+                
                 <Link href="/admin/dashboard" className="text-muted-foreground hover:text-forest transition-colors text-sm pt-4">Admin Dashboard</Link>
               </div>
             </SheetContent>

@@ -65,7 +65,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-24 max-w-4xl">
+    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
       <FadeIn>
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-serif text-3xl font-bold text-forest">My Account</h1>

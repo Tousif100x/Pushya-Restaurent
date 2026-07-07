@@ -131,7 +131,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="bg-background min-h-screen pt-24 pb-20">
-      <div className="container mx-auto px-4 lg:px-8">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <FadeIn className="mb-8">
           <Button variant="ghost" asChild className="mb-4 pl-0 hover:bg-transparent hover:text-gold">

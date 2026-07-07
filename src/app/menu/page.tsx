@@ -10,10 +10,16 @@ import { FadeIn, SlideUp } from "@/components/animations/Motion";
 import Image from "next/image";
 import { Search, Plus, Minus, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useEffect } from "react";
 
 export default function MenuPage() {
+  const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { items: cartItems, addItem, updateQuantity, removeItem } = useCartStore();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const getCartQuantity = (itemId: string) => {
     return cartItems.find((i) => i.id === itemId)?.quantity || 0;
@@ -32,9 +38,25 @@ export default function MenuPage() {
     }
   };
 
+  if (!isMounted) {
+    return (
+      <div className="bg-background min-h-screen pt-24 pb-20">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="h-16 w-48 bg-muted animate-pulse rounded-lg mb-12"></div>
+          <div className="h-14 w-full bg-muted animate-pulse rounded-full mb-8"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} className="h-48 w-full bg-muted animate-pulse rounded-xl"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-background min-h-screen pt-24 pb-20">
-      <div className="container mx-auto px-4 lg:px-8">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header & Search */}
         <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-12 gap-6">
@@ -103,7 +125,7 @@ export default function MenuPage() {
                   </div>
                 </SlideUp>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                   {filteredItems.map((item, idx) => {
                     const quantity = getCartQuantity(item.id);
                     const isSignature = signatureItems.includes(item.id);

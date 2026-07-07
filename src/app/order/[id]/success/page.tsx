@@ -23,7 +23,7 @@ export default function OrderSuccessPage() {
 
   return (
     <div className="bg-background min-h-screen pt-24 pb-20 flex items-center justify-center">
-      <div className="container mx-auto px-4 max-w-2xl">
+      <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <SlideUp>
           <div className="text-center mb-8">
             <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-green-600 mb-6">

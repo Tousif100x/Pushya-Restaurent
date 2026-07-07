@@ -24,7 +24,7 @@ export default function ServicesPage() {
   return (
     <div className="flex flex-col min-h-screen pt-24 bg-background">
       <main className="flex-1">
-        <section className="container mx-auto px-4 py-8 md:py-12">
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           <SlideUp>
             <div className="text-center max-w-3xl mx-auto mb-12">
               <h1 className="text-4xl md:text-5xl font-bold font-serif text-forest mb-4">Our Services & Offers</h1>

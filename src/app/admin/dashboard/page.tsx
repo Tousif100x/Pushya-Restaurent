@@ -107,7 +107,7 @@ export default function AdminDashboard() {
   const pendingOrders = orders.filter(o => o.status === 'PENDING').length;
 
   return (
-    <div className="flex-1 space-y-8 p-8 pt-24 bg-muted/30 min-h-screen">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24 space-y-8 bg-muted/30 min-h-screen">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight font-serif text-forest">Dashboard</h2>
         <div className="flex items-center space-x-2">
