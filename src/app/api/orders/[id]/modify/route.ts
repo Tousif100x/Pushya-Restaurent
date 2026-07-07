@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const { modifications } = await req.json();
 
     // modifications is an array of { itemId: string, status: string, replacedWith: string | null }
@@ -10,8 +11,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     // Use a transaction to update the order status and all item statuses
     await prisma.$transaction(async (tx) => {
       // Update the main order status to MODIFICATION_REQUESTED
-      await tx.order.update({
-        where: { id: params.id },
+      const order = await tx.order.update({
+        where: { id: id },
         data: { status: "MODIFICATION_REQUESTED" }
       });
 
