@@ -34,7 +34,7 @@ export async function PATCH(req: Request) {
     }
 
     const data = await req.json();
-    const { name, defaultAddress, landmark, alternateLandmark } = data;
+    const { name, defaultAddress, landmark } = data;
 
     const updatedUser = await prisma.user.update({
       where: { id: session.id },
@@ -42,7 +42,6 @@ export async function PATCH(req: Request) {
         name: name !== undefined ? name : undefined,
         defaultAddress: defaultAddress !== undefined ? defaultAddress : undefined,
         landmark: landmark !== undefined ? landmark : undefined,
-        alternateLandmark: alternateLandmark !== undefined ? alternateLandmark : undefined,
       }
     });
 
