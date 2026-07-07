@@ -1,6 +1,6 @@
 export const restaurantDetails = {
   name: "Pushya Pizza & Sandwich Planet",
-  phone: "7724045340",
+  phone: "9098382993",
   address: "Shri Krishna Paradise, Near, Rau Cir, Rau, Indore",
   deliveryRadius: "3–4 KM",
   mapLink: "https://maps.google.com/?q=Pushya+Pizza+and+Sandwich+Planet+Rau",

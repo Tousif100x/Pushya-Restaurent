@@ -1,7 +1,7 @@
 "use client";
 
 import { FadeIn, SlideUp, StaggerContainer, StaggerItem } from "@/components/animations/Motion";
-import { menuCategories, offers, services, signatureItems } from "@/data/menu";
+import { menuCategories, offers, services, signatureItems, restaurantDetails } from "@/data/menu";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -87,7 +87,7 @@ export default function Home() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/50 to-transparent" />
             
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center pt-[calc(4rem+env(safe-area-inset-top))] md:pt-[calc(5rem+env(safe-area-inset-top))]">
               <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-background">
                 {index === currentSlide && (
                   <StaggerContainer className="max-w-3xl mx-auto space-y-6">
@@ -284,7 +284,7 @@ export default function Home() {
                     <p className="text-background/70">{service.description}</p>
                     <div className="pt-4 mt-auto">
                       <Button asChild variant="link" className="text-gold hover:text-gold/80 p-0">
-                         <a href="https://wa.me/917724045340" target="_blank" rel="noreferrer">Enquire Now <ArrowRight className="ml-2 h-4 w-4" /></a>
+                         <a href={`https://wa.me/91${restaurantDetails.phone}`} target="_blank" rel="noreferrer">Enquire Now <ArrowRight className="ml-2 h-4 w-4" /></a>
                       </Button>
                     </div>
                   </CardContent>

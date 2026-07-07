@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { SlideUp, StaggerContainer, StaggerItem } from "@/components/animations/Motion";
 import { CheckCircle2, Gift, Utensils, PartyPopper, Truck, Package, PhoneCall } from "lucide-react";
+import { restaurantDetails } from "@/data/menu";
 
 export default function ServicesPage() {
   const partyOrders = [
@@ -34,8 +35,8 @@ export default function ServicesPage() {
               <div className="inline-flex flex-col items-center justify-center p-6 bg-forest/5 rounded-2xl border border-gold/30 shadow-sm">
                 <h3 className="font-serif text-xl font-bold text-forest mb-2">For Any Inquiries & Bookings</h3>
                 <p className="text-sm text-muted-foreground mb-4">Please call us directly to discuss your requirements.</p>
-                <a href="tel:7724045340" className="bg-gold text-forest font-bold px-8 py-3 rounded-full hover:bg-gold/90 transition shadow-md flex items-center gap-2">
-                  <PhoneCall className="w-5 h-5" /> Call Now: +91 7724045340
+                <a href={`tel:+91${restaurantDetails.phone}`} className="bg-gold text-forest font-bold px-8 py-3 rounded-full hover:bg-gold/90 transition shadow-md flex items-center gap-2">
+                  <PhoneCall className="w-5 h-5" /> Call Now: +91 {restaurantDetails.phone}
                 </a>
               </div>
             </div>
@@ -67,7 +68,7 @@ export default function ServicesPage() {
                       </li>
                     ))}
                   </ul>
-                  <a href="tel:7724045340" className="w-full flex items-center justify-center min-h-[48px] bg-gold text-forest font-bold rounded-lg hover:bg-gold/90 transition shadow-sm">
+                  <a href={`tel:+91${restaurantDetails.phone}`} className="w-full flex items-center justify-center min-h-[48px] bg-gold text-forest font-bold rounded-lg hover:bg-gold/90 transition shadow-sm">
                     Contact to Book
                   </a>
                 </CardContent>
@@ -102,7 +103,7 @@ export default function ServicesPage() {
                       <li className="flex items-center text-forest/90 font-medium"><CheckCircle2 className="h-4 w-4 text-forest mr-2 shrink-0" /> Salad & Achar</li>
                     </ul>
                   </div>
-                  <a href="tel:7724045340" className="w-full flex items-center justify-center min-h-[48px] bg-forest text-white font-bold rounded-lg hover:bg-forest/90 transition shadow-sm mt-auto">
+                  <a href={`tel:+91${restaurantDetails.phone}`} className="w-full flex items-center justify-center min-h-[48px] bg-forest text-white font-bold rounded-lg hover:bg-forest/90 transition shadow-sm mt-auto">
                     Subscribe Now
                   </a>
                 </CardContent>

@@ -115,8 +115,8 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                     The restaurant is currently busy and hasn't accepted your order yet. Please call us directly to confirm your order!
                   </p>
                   <Button asChild className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 mt-2 h-12 text-lg">
-                    <a href="tel:7724045340">
-                      <PhoneCall className="mr-2 h-5 w-5" /> Call Now: 7724045340
+                    <a href={`tel:+91${restaurantDetails.phone}`}>
+                      <PhoneCall className="mr-2 h-5 w-5" /> Call Now: {restaurantDetails.phone}
                     </a>
                   </Button>
                 </div>

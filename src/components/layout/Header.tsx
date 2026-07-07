@@ -39,24 +39,24 @@ export function Header() {
 
   return (
     <header
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? "bg-background/95 backdrop-blur-md shadow-sm py-3" : "bg-transparent py-5"
+      className={`fixed top-0 w-full z-50 transition-all duration-300 bg-background/85 backdrop-blur-xl shadow-sm border-b border-gold/10 pt-[env(safe-area-inset-top)] ${
+        isScrolled ? "h-16 md:h-20" : "h-16 md:h-20"
       }`}
     >
-      <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between">
+      <div className="container mx-auto px-4 lg:px-8 h-full flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image 
             src="/images/brand_logo.png" 
             alt="Pushya Pizza & Sandwich Planet Logo" 
-            width={50} 
-            height={50} 
-            className="rounded-full"
+            width={40} 
+            height={40} 
+            className="rounded-full md:w-[48px] md:h-[48px]"
           />
           <div className="flex flex-col">
-            <div className={`font-serif text-xl md:text-2xl font-bold tracking-tight ${isScrolled ? "text-forest" : "text-background"}`}>
+            <div className="font-serif text-lg md:text-xl font-bold tracking-tight text-forest">
               Pushya <span className="text-gold">Planet</span>
             </div>
-            <div className={`text-[10px] md:text-xs font-medium italic ${isScrolled ? "text-red-600" : "text-red-400"}`}>
+            <div className="text-[9px] md:text-[10px] font-medium italic text-red-600">
               Taste Jo Dil Ko Bhaye
             </div>
           </div>
