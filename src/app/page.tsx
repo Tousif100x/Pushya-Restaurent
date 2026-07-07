@@ -75,7 +75,7 @@ export default function Home() {
                       </Badge>
                     </StaggerItem>
                     <StaggerItem y={30}>
-                      <h1 className="font-serif text-5xl md:text-7xl font-bold leading-tight">
+                      <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
                         {slide.title}
                       </h1>
                     </StaggerItem>

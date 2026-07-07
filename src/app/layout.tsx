@@ -35,7 +35,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${playfair.variable} h-full antialiased scroll-smooth`}
     >
-      <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)]">
+      <body className="min-h-full w-full overflow-x-hidden flex flex-col bg-[var(--background)] text-[var(--foreground)]">
         <Header />
         <main className="flex-1">
           {children}
