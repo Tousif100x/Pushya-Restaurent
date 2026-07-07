@@ -21,8 +21,9 @@ const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), 
 
 export default function CheckoutPage() {
   const { items, getSubtotal, getTotalItems, clearCart } = useCartStore();
-  const { user, isAuthenticated, checkAuth } = useAuthStore();
+  const { user, isAuthenticated, isLoading, checkAuth } = useAuthStore();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -33,6 +34,7 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
+    setIsMounted(true);
     checkAuth();
   }, []);
 
@@ -116,6 +118,26 @@ export default function CheckoutPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (!isMounted || isLoading) {
+    return (
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24">
+        <div className="animate-pulse flex items-center mb-8">
+          <div className="h-4 w-4 bg-muted rounded mr-2" />
+          <div className="h-4 w-24 bg-muted rounded" />
+        </div>
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="h-[400px] bg-muted rounded-xl animate-pulse" />
+            <div className="h-[200px] bg-muted rounded-xl animate-pulse" />
+          </div>
+          <div className="lg:col-span-1">
+            <div className="h-[300px] bg-muted rounded-xl animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (

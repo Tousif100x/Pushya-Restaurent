@@ -13,7 +13,9 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
 import { useRouter } from "next/navigation";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
-import { Download } from "lucide-react";
+import { Download, Phone, MessageCircle, MapPin as MapPinIcon, Truck, CheckCircle2, Circle } from "lucide-react";
+import { getRestaurantStatus } from "@/lib/restaurantStatus";
+import { restaurantDetails } from "@/data/menu";
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -22,7 +24,8 @@ export function Header() {
   const { items, removeItem, updateQuantity, getSubtotal } = useCartStore();
   const { user, isAuthenticated, checkAuth } = useAuthStore();
   const router = useRouter();
-  const { isInstallable, promptInstall } = useInstallPrompt();
+  const { isInstalled, isInstallPromptSupported, promptInstall } = useInstallPrompt();
+  const rStatus = getRestaurantStatus();
 
   useEffect(() => {
     setIsMounted(true);
@@ -67,7 +70,7 @@ export function Header() {
           <Link href="/#offers" className="hover:text-gold transition-colors">Offers</Link>
           <Link href="/#contact" className="hover:text-gold transition-colors">Contact</Link>
           
-          {isMounted && isInstallable && (
+          {isMounted && isInstallPromptSupported && !isInstalled && (
             <button onClick={promptInstall} className="flex items-center gap-1 text-gold hover:text-gold/80 font-bold transition-colors">
               <Download className="h-4 w-4" /> Install App
             </button>
@@ -184,25 +187,79 @@ export function Header() {
                 <Menu className="h-6 w-6" />
               </Button>
             } />
-            <SheetContent side="left" className="w-[300px]">
-              <SheetHeader>
-                <SheetTitle className="font-serif text-2xl text-left">Pushya <span className="text-gold italic">Planet</span></SheetTitle>
+            <SheetContent side="left" className="w-[300px] p-6">
+              <SheetHeader className="text-left mb-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <Image 
+                    src="/images/brand_logo.png" 
+                    alt="Logo" 
+                    width={40} 
+                    height={40} 
+                    className="rounded-full"
+                  />
+                  <div>
+                    <SheetTitle className="font-serif text-xl">Pushya <span className="text-gold italic">Planet</span></SheetTitle>
+                    <p className="text-[10px] italic text-red-600">Taste Jo Dil Ko Bhaye</p>
+                  </div>
+                </div>
+                
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${rStatus.isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  <Circle className={`w-3 h-3 fill-current ${rStatus.isOpen ? 'text-green-500' : 'text-red-500'}`} />
+                  {rStatus.text}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 px-1">{rStatus.subtext}</p>
               </SheetHeader>
-              <div className="flex flex-col gap-6 mt-10 text-lg">
-                <Link href="/" className="hover:text-gold transition-colors font-medium border-b pb-2">Home</Link>
-                <Link href="/menu" className="hover:text-gold transition-colors font-medium border-b pb-2">Full Menu</Link>
-                <Link href="/services" className="hover:text-gold transition-colors font-medium border-b pb-2">Services & Offers</Link>
-                <Link href="/#offers" className="hover:text-gold transition-colors font-medium border-b pb-2">Combos</Link>
-                <Link href="/#contact" className="hover:text-gold transition-colors font-medium border-b pb-2">Contact & Location</Link>
-                
-                {isMounted && isInstallable && (
-                  <button onClick={promptInstall} className="flex items-center gap-2 bg-gold/10 text-gold font-bold p-3 rounded-lg border border-gold/20 hover:bg-gold/20 transition-colors text-left mt-2">
-                    <Download className="h-5 w-5" /> Install Pushya App
-                  </button>
-                )}
-                
-                <Link href="/admin/dashboard" className="text-muted-foreground hover:text-forest transition-colors text-sm pt-4">Admin Dashboard</Link>
-              </div>
+
+              <ScrollArea className="h-[calc(100vh-160px)] pr-4">
+                <div className="flex flex-col gap-6 text-base">
+                  <div className="space-y-4">
+                    <Link href="/" className="block hover:text-gold transition-colors font-medium border-b border-border/50 pb-2">Home</Link>
+                    <Link href="/menu" className="block hover:text-gold transition-colors font-medium border-b border-border/50 pb-2">Full Menu</Link>
+                    <Link href="/services" className="block hover:text-gold transition-colors font-medium border-b border-border/50 pb-2">Services & Offers</Link>
+                    <Link href="/track" className="block hover:text-gold transition-colors font-medium border-b border-border/50 pb-2">Track Order</Link>
+                  </div>
+
+                  <div className="bg-muted/50 rounded-xl p-4 space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Quick Contact</h4>
+                    <a href={`tel:+91${restaurantDetails.phone}`} className="flex items-center gap-3 text-sm hover:text-gold transition-colors">
+                      <Phone className="w-4 h-4 text-forest" /> Call Restaurant
+                    </a>
+                    <a href={`https://wa.me/91${restaurantDetails.phone}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm hover:text-gold transition-colors">
+                      <MessageCircle className="w-4 h-4 text-green-600" /> WhatsApp
+                    </a>
+                    <a href={restaurantDetails.mapLink} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm hover:text-gold transition-colors">
+                      <MapPinIcon className="w-4 h-4 text-red-500" /> View on Map
+                    </a>
+                  </div>
+
+                  <div className="bg-forest-soft rounded-xl p-4 flex items-center gap-3 border border-forest/10">
+                    <Truck className="w-5 h-5 text-forest shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-forest">Delivering in Rau</p>
+                      <p className="text-xs text-forest/70">Fast & fresh to your door</p>
+                    </div>
+                  </div>
+                  
+                  {isMounted && !isInstalled && (
+                    <button 
+                      onClick={async () => {
+                        if (isInstallPromptSupported) await promptInstall();
+                        // Optional fallback here if needed, but handled globally by Hero Modal now
+                      }} 
+                      className="flex items-center justify-center gap-2 bg-gold/10 text-gold font-bold p-3 rounded-lg border border-gold/20 hover:bg-gold/20 transition-colors"
+                    >
+                      <Download className="h-5 w-5" /> Install App
+                    </button>
+                  )}
+                  {isMounted && isInstalled && (
+                    <div className="flex items-center justify-center gap-2 bg-forest/5 text-forest font-bold p-3 rounded-lg border border-forest/10">
+                      <CheckCircle2 className="h-5 w-5" /> App Installed
+                    </div>
+                  )}
+                  
+                  <Link href="/admin/login" className="text-muted-foreground hover:text-forest transition-colors text-xs text-center pt-2">Admin Login</Link>
+                </div>
+              </ScrollArea>
             </SheetContent>
           </Sheet>
         </div>

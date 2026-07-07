@@ -42,54 +42,69 @@ export default function ServicesPage() {
           </SlideUp>
 
           <StaggerContainer className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16">
+            {/* Party Orders Card */}
             <StaggerItem>
-              <Card className="h-full border-forest/20 shadow-md">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-2xl font-serif text-forest">
-                    <PartyPopper className="mr-3 h-6 w-6 text-yellow-500" />
-                    Party Orders
-                  </CardTitle>
-                  <CardDescription>We cater to all your special occasions.</CardDescription>
+              <Card className="h-full flex flex-col border border-forest/10 shadow-sm hover:shadow-xl hover:border-gold/30 transition-all duration-300 bg-white">
+                <CardHeader className="p-8 pb-4">
+                  <div className="w-14 h-14 bg-forest-soft rounded-full flex items-center justify-center mb-4">
+                    <PartyPopper className="h-7 w-7 text-gold" />
+                  </div>
+                  <CardTitle className="text-3xl font-serif text-forest mb-2">Party Orders</CardTitle>
+                  <CardDescription className="text-base text-muted-foreground">
+                    Premium catering to make your celebrations memorable and hassle-free.
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
+                <CardContent className="p-8 pt-0 flex-1 flex flex-col">
+                  <div className="mb-6 pb-6 border-b border-forest/10">
+                    <div className="text-3xl font-bold text-forest">Custom Price</div>
+                    <div className="text-sm text-muted-foreground mt-1">Based on menu & guest count</div>
+                  </div>
+                  <ul className="space-y-4 mb-8 flex-1">
                     {partyOrders.map((party, idx) => (
-                      <li key={idx} className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-green-600 mr-3 shrink-0 mt-0.5" />
-                        <span className="text-lg">{party}</span>
+                      <li key={idx} className="flex items-start text-forest/90 font-medium">
+                        <CheckCircle2 className="h-5 w-5 text-gold mr-3 shrink-0 mt-0.5" />
+                        <span>{party}</span>
                       </li>
                     ))}
                   </ul>
+                  <a href="tel:7724045340" className="w-full flex items-center justify-center min-h-[48px] bg-gold text-forest font-bold rounded-lg hover:bg-gold/90 transition shadow-sm">
+                    Contact to Book
+                  </a>
                 </CardContent>
               </Card>
             </StaggerItem>
 
+            {/* Daily Tiffin Facility Card */}
             <StaggerItem>
-              <Card className="h-full border-forest/20 shadow-md bg-forest-soft">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-2xl font-serif text-forest">
-                    <Utensils className="mr-3 h-6 w-6" />
-                    Daily Tiffin Facility
-                  </CardTitle>
-                  <CardDescription>Wholesome home-style meals delivered daily.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4">
-                    <span className="text-3xl font-bold text-forest">₹100</span>
-                    <span className="text-muted-foreground"> / meal</span>
+              <Card className="h-full flex flex-col border border-forest/10 shadow-sm hover:shadow-xl hover:border-gold/30 transition-all duration-300 bg-[#F9FAEC]">
+                <CardHeader className="p-8 pb-4">
+                  <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+                    <Utensils className="h-7 w-7 text-forest" />
                   </div>
-                  <div className="bg-white/60 rounded-lg p-4 border border-forest/10">
-                    <h4 className="font-semibold mb-2">Includes:</h4>
-                    <ul className="grid grid-cols-2 gap-2 text-sm">
-                      <li className="flex items-center"><CheckCircle2 className="h-4 w-4 text-forest mr-2" /> 2 Sabzi</li>
-                      <li className="flex items-center"><CheckCircle2 className="h-4 w-4 text-forest mr-2" /> Dal & Chawal</li>
-                      <li className="flex items-center"><CheckCircle2 className="h-4 w-4 text-forest mr-2" /> 6 Roti</li>
-                      <li className="flex items-center"><CheckCircle2 className="h-4 w-4 text-forest mr-2" /> Salad & Achar</li>
+                  <CardTitle className="text-3xl font-serif text-forest mb-2">Daily Tiffin Facility</CardTitle>
+                  <CardDescription className="text-base text-muted-foreground">
+                    Wholesome, home-style meals delivered fresh to your door every day.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-8 pt-0 flex-1 flex flex-col">
+                  <div className="mb-6 pb-6 border-b border-forest/10">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl font-bold text-forest">₹100</span>
+                      <span className="text-muted-foreground font-medium">/ meal</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-forest mb-4 uppercase tracking-wider text-xs">Included Items</h4>
+                    <ul className="space-y-4 mb-8 grid grid-cols-2 gap-x-2 gap-y-0">
+                      <li className="flex items-center text-forest/90 font-medium"><CheckCircle2 className="h-4 w-4 text-forest mr-2 shrink-0" /> 2 Sabzi</li>
+                      <li className="flex items-center text-forest/90 font-medium"><CheckCircle2 className="h-4 w-4 text-forest mr-2 shrink-0" /> Dal & Chawal</li>
+                      <li className="flex items-center text-forest/90 font-medium"><CheckCircle2 className="h-4 w-4 text-forest mr-2 shrink-0" /> 6 Roti <span className="text-[10px] text-muted-foreground ml-1">(₹10 extra)</span></li>
+                      <li className="flex items-center text-forest/90 font-medium"><CheckCircle2 className="h-4 w-4 text-forest mr-2 shrink-0" /> Salad & Achar</li>
                     </ul>
                   </div>
-                  <p className="text-sm mt-4 text-muted-foreground italic">
-                    * ₹10 per extra roti
-                  </p>
+                  <a href="tel:7724045340" className="w-full flex items-center justify-center min-h-[48px] bg-forest text-white font-bold rounded-lg hover:bg-forest/90 transition shadow-sm mt-auto">
+                    Subscribe Now
+                  </a>
                 </CardContent>
               </Card>
             </StaggerItem>

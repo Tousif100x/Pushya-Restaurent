@@ -1,23 +1,81 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner"; // We will add sonner soon
+
+export type BrowserContextType = 'ios-safari' | 'android-chrome' | 'android-other' | 'desktop-chrome' | 'desktop-other' | 'unknown';
+export type InstallState = 'idle' | 'preparing' | 'installing' | 'installed' | 'error';
 
 export function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
+  const [isInstallPromptSupported, setIsInstallPromptSupported] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [installState, setInstallState] = useState<InstallState>('idle');
+  const [browserContext, setBrowserContext] = useState<BrowserContextType>('unknown');
+
+  // Track Analytics
+  const trackInstallEvent = (event: string) => {
+    const key = `analytics_${event}`;
+    const current = parseInt(localStorage.getItem(key) || "0", 10);
+    localStorage.setItem(key, (current + 1).toString());
+    console.log(`[Analytics] ${event}:`, current + 1);
+  };
 
   useEffect(() => {
-    // Check if dismissed in localStorage
-    const dismissed = localStorage.getItem("pwa_install_dismissed");
-    if (dismissed === "true") {
-      setIsDismissed(true);
+    // 1. Detect if already installed
+    const checkInstalled = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+      setIsInstalled(isStandalone);
+      if (isStandalone) setInstallState('installed');
+    };
+    
+    checkInstalled();
+    
+    // Listen for changes (e.g. user installs via browser menu directly)
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+      if (e.matches) {
+        setIsInstalled(true);
+        setInstallState('installed');
+        trackInstallEvent('install_success');
+      }
+    });
+    
+    window.addEventListener('appinstalled', () => {
+      setIsInstalled(true);
+      setInstallState('installed');
+      trackInstallEvent('install_success');
+    });
+
+    // 2. Detect Browser Context
+    const ua = navigator.userAgent.toLowerCase();
+    const isIOS = /ipad|iphone|ipod/.test(ua) && !(window as any).MSStream;
+    const isSafari = /safari/.test(ua) && !/chrome/.test(ua);
+    const isAndroid = /android/.test(ua);
+    const isChrome = /chrome/.test(ua);
+    const isMobile = /mobile/.test(ua);
+    
+    if (isIOS && isSafari) {
+      setBrowserContext('ios-safari');
+    } else if (isAndroid && isChrome && isMobile) {
+      setBrowserContext('android-chrome');
+    } else if (isAndroid && !isChrome) {
+      setBrowserContext('android-other');
+    } else if (!isMobile && isChrome) {
+      setBrowserContext('desktop-chrome');
+    } else if (!isMobile && !isChrome) {
+      setBrowserContext('desktop-other');
     }
 
+    // 3. Handle prompt dismissal
+    const dismissed = localStorage.getItem("pwa_install_dismissed");
+    if (dismissed === "true") setIsDismissed(true);
+
+    // 4. Handle beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setIsInstallable(true);
+      setIsInstallPromptSupported(true);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -28,13 +86,35 @@ export function useInstallPrompt() {
   }, []);
 
   const promptInstall = async () => {
-    if (!deferredPrompt) return;
+    trackInstallEvent('install_clicked');
+    
+    if (!isInstallPromptSupported || !deferredPrompt) {
+      // If not supported natively, return false so the UI can show the manual fallback modal
+      return false;
+    }
+
+    setInstallState('preparing');
+    trackInstallEvent('install_prompt_shown');
+    
+    // Slight delay for smooth UX
+    await new Promise(r => setTimeout(r, 600));
+    setInstallState('installing');
+    
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
+    
     if (outcome === "accepted") {
+      trackInstallEvent('install_accepted');
       setDeferredPrompt(null);
-      setIsInstallable(false);
+      setIsInstallPromptSupported(false);
+      // Actual install success is caught by the 'appinstalled' event listener above
+    } else {
+      trackInstallEvent('install_dismissed');
+      setInstallState('idle');
+      toast("Installation cancelled", { description: "You can install it later from the menu." });
     }
+    
+    return true; // Handled natively
   };
 
   const dismissPrompt = () => {
@@ -42,5 +122,13 @@ export function useInstallPrompt() {
     setIsDismissed(true);
   };
 
-  return { isInstallable, isDismissed, promptInstall, dismissPrompt };
+  return { 
+    isInstalled,
+    installState,
+    browserContext,
+    isInstallPromptSupported,
+    isDismissed, 
+    promptInstall, 
+    dismissPrompt 
+  };
 }

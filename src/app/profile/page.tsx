@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogOut, MapPin, Package, User as UserIcon } from "lucide-react";
 import { FadeIn, SlideUp } from "@/components/animations/Motion";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ShoppingBag } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading, logout, checkAuth } = useAuthStore();
@@ -61,7 +64,27 @@ export default function ProfilePage() {
   }, [isAuthenticated, isLoading, router, user]);
 
   if (isLoading || !user) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="flex items-center justify-between mb-8">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-10 w-24" />
+        </div>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-1 space-y-6">
+            <Skeleton className="h-64 w-full rounded-xl" />
+            <Skeleton className="h-64 w-full rounded-xl" />
+          </div>
+          <div className="md:col-span-2">
+            <Skeleton className="h-12 w-48 mb-6" />
+            <div className="space-y-4">
+              <Skeleton className="h-32 w-full rounded-xl" />
+              <Skeleton className="h-32 w-full rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -130,13 +153,12 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="pt-4">
                 {orders.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Package className="w-12 h-12 mx-auto opacity-20 mb-3" />
-                    <p>You haven't placed any orders yet.</p>
-                    <Button className="mt-4 bg-gold text-forest hover:bg-gold/90" onClick={() => router.push("/menu")}>
-                      Order Now
-                    </Button>
-                  </div>
+                  <EmptyState 
+                    icon={<Package className="w-6 h-6" />}
+                    title="No Orders Yet"
+                    description="You haven't placed any orders with us. Let's fix that!"
+                    action={<Button onClick={() => router.push('/menu')}>Order Now</Button>}
+                  />
                 ) : (
                   <div className="space-y-4">
                     {orders.map((order) => (

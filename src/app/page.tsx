@@ -7,8 +7,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Clock, Star, MapPin } from "lucide-react";
+import { ArrowRight, Clock, Star, Download, ShieldCheck, Banknote, CheckCircle2, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useInstallPrompt } from "@/hooks/useInstallPrompt";
+import { InstallModal } from "@/components/layout/InstallModal";
+import dynamic from "next/dynamic";
+
+const OffersSection = dynamic(() => import("@/components/home/OffersSection"), { ssr: true });
+const TestimonialsSection = dynamic(() => import("@/components/home/TestimonialsSection"), { ssr: true });
 
 const heroSlides = [
   {
@@ -33,6 +39,15 @@ const heroSlides = [
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
+  
+  const { 
+    isInstalled, 
+    installState, 
+    browserContext, 
+    isInstallPromptSupported, 
+    promptInstall 
+  } = useInstallPrompt();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -47,6 +62,12 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <InstallModal 
+        isOpen={isInstallModalOpen} 
+        onClose={() => setIsInstallModalOpen(false)} 
+        browserContext={browserContext} 
+      />
+
       {/* Hero Section */}
       <section className="relative h-[80vh] md:h-screen w-full overflow-hidden bg-forest">
         {heroSlides.map((slide, index) => (
@@ -60,6 +81,7 @@ export default function Home() {
               src={slide.image}
               alt={slide.title}
               fill
+              sizes="100vw"
               className="object-cover opacity-60"
               priority={index === 0}
             />
@@ -84,10 +106,58 @@ export default function Home() {
                         {slide.subtitle}
                       </p>
                     </StaggerItem>
-                    <StaggerItem y={30} className="pt-8">
-                      <Button asChild size="lg" className="bg-gold text-forest hover:bg-gold/90 text-lg h-14 px-8 rounded-full">
+                    <StaggerItem y={30} className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                      <Button asChild size="lg" className="w-full sm:w-auto bg-gold text-forest hover:bg-gold/90 text-lg h-14 px-8 rounded-full">
                         <Link href="/menu">Explore Menu <ArrowRight className="ml-2 h-5 w-5" /></Link>
                       </Button>
+                      
+                      {isInstalled ? (
+                        <Button size="lg" variant="outline" disabled className="w-full sm:w-auto border-gold/50 text-gold bg-forest/20 text-lg h-14 px-8 rounded-full">
+                          <CheckCircle2 className="mr-2 h-5 w-5" /> App Installed
+                        </Button>
+                      ) : (
+                        <Button 
+                          size="lg" 
+                          variant="outline" 
+                          className="w-full sm:w-auto border-gold text-gold hover:bg-gold/10 hover:text-gold text-lg h-14 px-8 rounded-full"
+                          disabled={installState === 'preparing' || installState === 'installing'}
+                          onClick={async () => {
+                            if (isInstallPromptSupported) {
+                              const handled = await promptInstall();
+                              if (!handled) setIsInstallModalOpen(true);
+                            } else {
+                              setIsInstallModalOpen(true);
+                            }
+                          }}
+                        >
+                          {installState === 'preparing' || installState === 'installing' ? (
+                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Installing...</>
+                          ) : (
+                            <><Download className="mr-2 h-5 w-5" /> Download App</>
+                          )}
+                        </Button>
+                      )}
+                    </StaggerItem>
+                    
+                    <StaggerItem y={30} className="pt-8">
+                      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm md:text-base text-background/90 max-w-2xl mx-auto">
+                        <div className="flex items-center gap-1.5">
+                          <Star className="w-4 h-4 text-gold fill-gold" />
+                          <span>Rated 4.8/5</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-4 h-4 text-gold" />
+                          <span>30 Min Delivery</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <ShieldCheck className="w-4 h-4 text-gold" />
+                          <span>Fresh Ingredients</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Banknote className="w-4 h-4 text-gold" />
+                          <span>Cash & UPI</span>
+                        </div>
+                      </div>
                     </StaggerItem>
                   </StaggerContainer>
                 )}
@@ -161,48 +231,7 @@ export default function Home() {
       </section>
 
       {/* Alternating Section: Weekly Offers */}
-      <section id="offers" className="py-24 bg-forest text-background">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-8 md:gap-16 items-center">
-            <SlideUp>
-              <div className="space-y-6">
-                <h4 className="text-gold font-medium tracking-widest uppercase">Special Deals</h4>
-                <h2 className="font-serif text-4xl md:text-5xl font-bold">Weekly Offers & Combos</h2>
-                <p className="text-background/80 text-lg leading-relaxed max-w-lg">
-                  Enjoy our hand-picked combinations tailored for the perfect meal experience. Whether it's a weekend craving or a daily necessity, we have something special for you.
-                </p>
-                <div className="pt-4">
-                   <Button asChild className="bg-gold text-forest hover:bg-gold/90 rounded-full">
-                      <Link href="/menu">Order Now</Link>
-                    </Button>
-                </div>
-              </div>
-            </SlideUp>
-            
-            <div className="space-y-6">
-              {offers.map((offer, index) => (
-                <SlideUp key={offer.id} delay={index * 0.1}>
-                  <Card className="bg-forest-soft border-none text-background overflow-hidden hover:bg-forest-soft/80 transition-colors">
-                    <div className="flex flex-col sm:flex-row">
-                      <div className="relative w-full sm:w-1/3 h-40 sm:h-auto">
-                        <Image src={offer.image} alt={offer.title} fill className="object-cover" />
-                      </div>
-                      <div className="p-6 sm:w-2/3">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-serif text-xl font-bold">{offer.title}</h3>
-                          <span className="text-gold font-bold text-xl">₹{offer.price}</span>
-                        </div>
-                        <p className="text-sm text-background/70 mb-3">{offer.description}</p>
-                        <Badge variant="secondary" className="bg-forest text-gold border-gold/20">{offer.note}</Badge>
-                      </div>
-                    </div>
-                  </Card>
-                </SlideUp>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <OffersSection />
 
       {/* Categories */}
       <section className="py-24 bg-background">
@@ -267,16 +296,7 @@ export default function Home() {
       </section>
       
       {/* Testimonials / Review System Placeholder */}
-      <section className="py-24 bg-background">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <SlideUp>
-            <h2 className="font-serif text-4xl font-bold text-forest mb-12">What Our Customers Say</h2>
-            <div className="max-w-2xl mx-auto py-12 px-6 bg-muted rounded-2xl border border-border border-dashed">
-              <p className="text-muted-foreground italic text-lg">"No customer reviews yet. Be the first to leave a review after your order!"</p>
-            </div>
-          </SlideUp>
-        </div>
-      </section>
+      <TestimonialsSection />
 
     </div>
   );

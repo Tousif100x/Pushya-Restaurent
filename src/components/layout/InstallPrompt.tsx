@@ -6,14 +6,14 @@ import { X, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function InstallPrompt() {
-  const { isInstallable, isDismissed, promptInstall, dismissPrompt } = useInstallPrompt();
+  const { isInstallPromptSupported, isDismissed, promptInstall, dismissPrompt } = useInstallPrompt();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted || !isInstallable || isDismissed) return null;
+  if (!mounted || !isInstallPromptSupported || isDismissed) return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-8 md:bottom-8 md:w-96 bg-white dark:bg-forest rounded-2xl shadow-2xl border border-gold/20 p-5 z-[100] animate-in slide-in-from-bottom-5 fade-in duration-500">

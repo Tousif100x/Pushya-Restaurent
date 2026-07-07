@@ -4,6 +4,9 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { InstallPrompt } from "@/components/layout/InstallPrompt";
+import { Toaster } from "sonner";
+import { NetworkStatus } from "@/components/layout/NetworkStatus";
+import { BackToTop } from "@/components/layout/BackToTop";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -51,6 +54,9 @@ export default function RootLayout({
         </main>
         <Footer />
         <InstallPrompt />
+        <NetworkStatus />
+        <BackToTop />
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );
