@@ -4,7 +4,7 @@ import { FadeIn, SlideUp } from "@/components/animations/Motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { restaurantDetails } from "@/data/menu";
+import { siteConfig as restaurantDetails } from "@/lib/siteConfig";
 import { CheckCircle2, Copy, MapPin, Phone, ArrowRight, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";

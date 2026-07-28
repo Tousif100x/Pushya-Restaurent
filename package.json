@@ -18,6 +18,8 @@
     "@types/leaflet": "^1.9.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "firebase": "^12.16.0",
+    "firebase-admin": "^14.1.0",
     "framer-motion": "^12.42.2",
     "jose": "^6.2.3",
     "leaflet": "^1.9.4",

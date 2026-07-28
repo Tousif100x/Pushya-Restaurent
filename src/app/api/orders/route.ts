@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { notificationProvider } from "@/lib/notifications";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { 
       userId, customerName, customerPhone, customerAddress, 
-      formattedAddress, houseNumber, landmark, deliveryInstructions,
+      formattedAddress, houseNumber, flat, floor, apartment,
+      landmark, deliveryInstructions,
       latitude, longitude, distanceKm, deliveryDistance, totalAmount, 
       deliveryFee, deliveryCharge, items 
     } = body;
@@ -19,6 +21,9 @@ export async function POST(req: Request) {
         customerAddress,
         formattedAddress,
         houseNumber,
+        flat,
+        floor,
+        apartment,
         landmark,
         deliveryInstructions,
         latitude,
@@ -40,6 +45,30 @@ export async function POST(req: Request) {
         },
       },
     });
+
+    // --- Send Push Notification to all admin devices ---
+    try {
+      notificationProvider.initBackend();
+      
+      const admin = await prisma.admin.findFirst();
+      if (admin && admin.fcmTokens && admin.fcmTokens.length > 0) {
+        const itemCount = items.length;
+        const orderNum = order.id.slice(-6).toUpperCase();
+        
+        await notificationProvider.sendToTokens(admin.fcmTokens, {
+          title: `🔔 New Order #${orderNum}!`,
+          body: `${customerName} | ${itemCount} item${itemCount > 1 ? 's' : ''} | ₹${totalAmount} | Tap to view`,
+          url: `/admin/dashboard`,
+          data: {
+            orderId: order.id,
+            url: `/admin/dashboard`,
+          }
+        });
+      }
+    } catch (notifError) {
+      // Do not fail the order if notification fails
+      console.error("Push notification failed (non-critical):", notifError);
+    }
 
     return NextResponse.json({ success: true, orderId: order.id });
   } catch (error) {

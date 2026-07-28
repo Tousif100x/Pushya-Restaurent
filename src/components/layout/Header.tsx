@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
 import { Download, Phone, MessageCircle, MapPin as MapPinIcon, Truck, CheckCircle2, Circle } from "lucide-react";
 import { getRestaurantStatus } from "@/lib/restaurantStatus";
-import { restaurantDetails } from "@/data/menu";
+import { siteConfig as restaurantDetails } from "@/lib/siteConfig";
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);

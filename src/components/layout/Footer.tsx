@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Globe, Camera, MapPin, Phone, MessageCircle } from "lucide-react";
-import { restaurantDetails } from "@/data/menu";
+import { siteConfig as restaurantDetails } from "@/lib/siteConfig";
 import { Button } from "../ui/button";
 
 export function Footer() {

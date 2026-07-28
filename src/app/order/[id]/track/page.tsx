@@ -3,7 +3,7 @@
 import { FadeIn, SlideUp, StaggerContainer, StaggerItem } from "@/components/animations/Motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { restaurantDetails } from "@/data/menu";
+import { siteConfig as restaurantDetails } from "@/lib/siteConfig";
 import { Check, ChefHat, MapPin, Package, Phone, MessageCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";

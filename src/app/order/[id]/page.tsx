@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/animations/Motion";
 import { CheckCircle2, Clock, MapPin, PhoneCall, AlertTriangle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { restaurantDetails } from "@/data/menu";
+import { siteConfig as restaurantDetails } from "@/lib/siteConfig";
 
 export default function OrderTrackingPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);

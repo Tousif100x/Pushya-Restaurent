@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
   engineType = "binary"
@@ -11,17 +8,101 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Admin {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  fcmTokens String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RestaurantSettings {
+  id                 String   @id @default("default")
+  openingTime        String   @default("10:00 AM")
+  closingTime        String   @default("10:00 PM")
+  isAcceptingOrders  Boolean  @default(true)
+  holidayMode        Boolean  @default(false)
+  deliveryRadiusKm   Float    @default(4.0)
+  baseDeliveryCharge Float    @default(20.0)
+  distanceSlabs      Json     @default("[{\"maxKm\": 2, \"charge\": 20}, {\"maxKm\": 4, \"charge\": 40}]")
+  estimatedPrepTime  String   @default("25-30 mins")
+  contactPhone       String   @default("9098382993")
+  contactWhatsapp    String   @default("9098382993")
+  address            String   @default("Shri Krishna Paradise, Near, Rau Cir, Rau, Indore")
+  latitude           Float    @default(22.6378)
+  longitude          Float    @default(75.8073)
+  mapLink            String   @default("https://maps.google.com/?q=Pushya+Pizza+and+Sandwich+Planet+Rau")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  name        String
+  description String?
+  image       String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       Float
+  image       String?
+  isVeg       Boolean   @default(true)
+  isSignature Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Offer {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  title       String
+  description String?
+  price       Float
+  note        String?
+  image       String?
+  color       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  title       String
+  description String?
+  icon        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model User {
-  id              String   @id @default(uuid())
-  phone           String   @unique
+  id              String    @id @default(uuid())
+  phone           String    @unique
   name            String?
   defaultAddress  String?
   landmark        String?
   instructions    String?
   orders          Order[]
   addresses       Address[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Address {
@@ -31,6 +112,9 @@ model Address {
   label            String   @default("Other") // Home, Work, Other
   formattedAddress String
   houseNumber      String?
+  flat             String?
+  floor            String?
+  apartment        String?
   landmark         String?
   instructions     String?
   latitude         Float
@@ -40,17 +124,18 @@ model Address {
   updatedAt        DateTime @updatedAt
 }
 
-
 model Order {
-  id              String      @id @default(uuid())
-  userId          String?
-  user            User?       @relation(fields: [userId], references: [id])
+  id                   String      @id @default(uuid())
+  userId               String?
+  user                 User?       @relation(fields: [userId], references: [id])
   customerName         String
   customerPhone        String
   customerAddress      String?
   formattedAddress     String?
   houseNumber          String?
+  flat                 String?
   floor                String?
+  apartment            String?
   landmark             String?
   deliveryInstructions String?
   latitude             Float?

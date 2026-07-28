@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { SlideUp, StaggerContainer, StaggerItem } from "@/components/animations/Motion";
 import { CheckCircle2, Gift, Utensils, PartyPopper, Truck, Package, PhoneCall } from "lucide-react";
-import { restaurantDetails } from "@/data/menu";
+import { siteConfig as restaurantDetails } from "@/lib/siteConfig";
 
 export default function ServicesPage() {
   const partyOrders = [
