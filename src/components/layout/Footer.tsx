@@ -90,10 +90,7 @@ export function Footer() {
         </div>
 
         <div className="pt-8 border-t border-forest-soft text-center text-muted-foreground text-sm flex flex-col md:flex-row justify-between items-center gap-4">
-          <p><Link href="/admin/dashboard" className="hover:text-background transition-colors outline-none">©</Link> {new Date().getFullYear()} {restaurantDetails.name}. All rights reserved.</p>
-          <div className="flex gap-4">
-            {/* Secret admin login is on the copyright symbol */}
-          </div>
+          <p>© {new Date().getFullYear()} {restaurantDetails.name}. All rights reserved.</p>
         </div>
       </div>
     </footer>

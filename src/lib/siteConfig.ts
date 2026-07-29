@@ -15,7 +15,7 @@ export const siteConfig = {
   latitude: 22.6378,
   longitude: 75.8073,
   mapLink: "https://maps.google.com/?q=Pushya+Pizza+and+Sandwich+Planet+Rau",
-  openingTime: "10:00 AM",
+  openingTime: "08:00 AM",
   closingTime: "10:00 PM",
   deliveryRadiusKm: 4,
   baseDeliveryCharge: 20,

@@ -258,6 +258,30 @@ export default function AdminSettingsPage() {
           </CardContent>
         </Card>
 
+        {/* Experience Switcher */}
+        <Card className="border-gold/30 bg-gold/5">
+          <CardHeader>
+            <CardTitle className="text-base font-bold text-forest">App Mode / Experience</CardTitle>
+            <CardDescription>Switch experience mode or return to the initial role selection screen.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="font-semibold text-sm">Current Mode: <span className="text-gold font-bold">Restaurant Admin</span></p>
+              <p className="text-xs text-muted-foreground mt-0.5">Clears default role preference and opens entry screen.</p>
+            </div>
+            <Button
+              variant="outline"
+              className="border-forest text-forest hover:bg-forest hover:text-white"
+              onClick={() => {
+                localStorage.removeItem("pushya_app_role");
+                router.push("/");
+              }}
+            >
+              Switch Experience
+            </Button>
+          </CardContent>
+        </Card>
+
         <div className="flex justify-end pb-8">
           <Button
             onClick={handleSave}

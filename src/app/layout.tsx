@@ -1,12 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { InstallPrompt } from "@/components/layout/InstallPrompt";
 import { Toaster } from "sonner";
-import { NetworkStatus } from "@/components/layout/NetworkStatus";
-import { BackToTop } from "@/components/layout/BackToTop";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -20,7 +15,7 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "Pushya Pizza & Sandwich Planet",
-  description: "Delicious food & wonderful eating experience",
+  description: "Delicious food & wonderful eating experience in Rau, Indore",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -39,23 +34,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
       className={`${inter.variable} ${playfair.variable} h-full antialiased scroll-smooth`}
     >
-      <body className="min-h-full w-full max-w-[100vw] overflow-x-hidden flex flex-col bg-[var(--background)] text-[var(--foreground)] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
-        <Header />
-        <main className="flex-1">
-          {children}
-        </main>
-        <Footer />
-        <InstallPrompt />
-        <NetworkStatus />
-        <BackToTop />
+      <body className="min-h-full w-full max-w-[100vw] overflow-x-hidden bg-[var(--background)] text-[var(--foreground)]">
+        {children}
         <Toaster position="top-center" richColors />
       </body>
     </html>

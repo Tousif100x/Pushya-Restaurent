@@ -1,303 +1,156 @@
 "use client";
 
-import { FadeIn, SlideUp, StaggerContainer, StaggerItem } from "@/components/animations/Motion";
-import { menuCategories, offers, services, signatureItems, restaurantDetails } from "@/data/menu";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight, Clock, Star, Download, ShieldCheck, Banknote, CheckCircle2, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useInstallPrompt } from "@/hooks/useInstallPrompt";
-import { InstallModal } from "@/components/layout/InstallModal";
-import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
-const OffersSection = dynamic(() => import("@/components/home/OffersSection"), { ssr: true });
-const TestimonialsSection = dynamic(() => import("@/components/home/TestimonialsSection"), { ssr: true });
+const ROLE_KEY = "pushya_app_role";
 
-const heroSlides = [
-  {
-    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2000&auto=format&fit=crop",
-    title: "Delicious Food & Wonderful Eating Experience",
-    subtitle: "We serve food, harmony, & laughter.",
-    badge: "Signature Pizza"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?q=80&w=2000&auto=format&fit=crop",
-    title: "Perfectly Grilled Sandwiches",
-    subtitle: "Loaded with fresh veggies and premium cheese.",
-    badge: "Fresh Ingredients"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2000&auto=format&fit=crop",
-    title: "Premium Party Catering",
-    subtitle: "Make your celebrations memorable with our special party orders.",
-    badge: "Party Orders"
-  }
-];
-
-export default function Home() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
-  
-  const { 
-    isInstalled, 
-    installState, 
-    browserContext, 
-    isInstallPromptSupported, 
-    promptInstall 
-  } = useInstallPrompt();
+export default function EntryScreen() {
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [selecting, setSelecting] = useState<"customer" | "admin" | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+    setMounted(true);
+    // If role already chosen, skip entry screen
+    const savedRole = localStorage.getItem(ROLE_KEY);
+    if (savedRole === "customer") {
+      router.replace("/home");
+    } else if (savedRole === "admin") {
+      router.replace("/admin/login");
+    }
+  }, [router]);
 
-  // Get all items to find signature ones
-  const allItems = menuCategories.flatMap(c => c.items as any[]);
-  const featuredSignatures = allItems.filter(item => signatureItems.includes(item.id)).slice(0, 4);
+  const handleSelect = (role: "customer" | "admin") => {
+    setSelecting(role);
+    localStorage.setItem(ROLE_KEY, role);
+    if (role === "customer") {
+      router.push("/home");
+    } else {
+      router.push("/admin/login");
+    }
+  };
+
+  if (!mounted) return null;
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <InstallModal 
-        isOpen={isInstallModalOpen} 
-        onClose={() => setIsInstallModalOpen(false)} 
-        browserContext={browserContext} 
-      />
+    <div className="min-h-screen bg-[#10261B] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#D9A441]/10 blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-[#D9A441]/5 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-white/[0.02] blur-3xl" />
+      </div>
 
-      {/* Hero Section */}
-      <section className="relative h-[80vh] md:h-screen w-full overflow-hidden bg-forest">
-        {heroSlides.map((slide, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-            }`}
-          >
-            <Image
-              src={slide.image}
-              alt={slide.title}
-              fill
-              sizes="100vw"
-              className="object-cover opacity-60"
-              priority={index === 0}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/50 to-transparent" />
-            
-            <div className="absolute inset-0 flex items-center justify-center pt-[calc(4rem+env(safe-area-inset-top))] md:pt-[calc(5rem+env(safe-area-inset-top))]">
-              <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-background">
-                {index === currentSlide && (
-                  <StaggerContainer className="max-w-3xl mx-auto space-y-6">
-                    <StaggerItem y={30}>
-                      <Badge className="bg-gold text-forest hover:bg-gold/90 text-sm px-4 py-1 mb-4">
-                        {slide.badge}
-                      </Badge>
-                    </StaggerItem>
-                    <StaggerItem y={30}>
-                      <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
-                        {slide.title}
-                      </h1>
-                    </StaggerItem>
-                    <StaggerItem y={30}>
-                      <p className="text-xl md:text-2xl text-background/80 font-light">
-                        {slide.subtitle}
-                      </p>
-                    </StaggerItem>
-                    <StaggerItem y={30} className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-                      <Button asChild size="lg" className="w-full sm:w-auto bg-gold text-forest hover:bg-gold/90 text-lg h-14 px-8 rounded-full">
-                        <Link href="/menu">Explore Menu <ArrowRight className="ml-2 h-5 w-5" /></Link>
-                      </Button>
-                      
-                      {isInstalled ? (
-                        <Button size="lg" variant="outline" disabled className="w-full sm:w-auto border-gold/50 text-gold bg-forest/20 text-lg h-14 px-8 rounded-full">
-                          <CheckCircle2 className="mr-2 h-5 w-5" /> App Installed
-                        </Button>
-                      ) : (
-                        <Button 
-                          size="lg" 
-                          variant="outline" 
-                          className="w-full sm:w-auto border-gold text-gold hover:bg-gold/10 hover:text-gold text-lg h-14 px-8 rounded-full"
-                          disabled={installState === 'preparing' || installState === 'installing'}
-                          onClick={async () => {
-                            if (isInstallPromptSupported) {
-                              const handled = await promptInstall();
-                              if (!handled) setIsInstallModalOpen(true);
-                            } else {
-                              setIsInstallModalOpen(true);
-                            }
-                          }}
-                        >
-                          {installState === 'preparing' || installState === 'installing' ? (
-                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Installing...</>
-                          ) : (
-                            <><Download className="mr-2 h-5 w-5" /> Download App</>
-                          )}
-                        </Button>
-                      )}
-                    </StaggerItem>
-                    
-                    <StaggerItem y={30} className="pt-8">
-                      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm md:text-base text-background/90 max-w-2xl mx-auto">
-                        <div className="flex items-center gap-1.5">
-                          <Star className="w-4 h-4 text-gold fill-gold" />
-                          <span>Rated 4.8/5</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-4 h-4 text-gold" />
-                          <span>30 Min Delivery</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <ShieldCheck className="w-4 h-4 text-gold" />
-                          <span>Fresh Ingredients</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Banknote className="w-4 h-4 text-gold" />
-                          <span>Cash & UPI</span>
-                        </div>
-                      </div>
-                    </StaggerItem>
-                  </StaggerContainer>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-        
-        {/* Slider Indicators */}
-        <div className="absolute bottom-10 left-0 right-0 z-20 flex justify-center gap-3">
-          {heroSlides.map((_, index) => (
-            <button
-              key={index}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                index === currentSlide ? "w-10 bg-gold" : "w-2 bg-background/50 hover:bg-background/80"
-              }`}
-              onClick={() => setCurrentSlide(index)}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
+      {/* Logo */}
+      <div className="relative z-10 flex flex-col items-center mb-12">
+        <div className="relative mb-5">
+          <div className="absolute inset-0 rounded-full bg-[#D9A441]/30 blur-xl scale-125" />
+          <Image
+            src="/images/brand_logo.png"
+            alt="Pushya Planet"
+            width={88}
+            height={88}
+            className="relative rounded-full border-2 border-[#D9A441]/50 shadow-2xl"
+            priority
+          />
         </div>
-      </section>
+        <h1 className="font-serif text-4xl font-bold text-white tracking-tight">
+          Pushya <span className="text-[#D9A441]">Planet</span>
+        </h1>
+        <p className="text-white/50 text-sm italic mt-2 font-medium">
+          Taste Jo Dil Ko Bhaye
+        </p>
+      </div>
 
-      {/* Featured Signatures */}
-      <section className="py-24 bg-background">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SlideUp>
-            <div className="text-center mb-16">
-              <h4 className="text-gold font-medium tracking-widest uppercase mb-3">Serve Quality Food</h4>
-              <h2 className="font-serif text-4xl md:text-5xl font-bold text-forest">Immerse yourself in a<br/>premium experience.</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto mt-6">
-                Savor perfection—crafted with tradition, fresh ingredients, and a passion for detail.
+      {/* Welcome text */}
+      <div className="relative z-10 text-center mb-10">
+        <h2 className="text-white/80 text-lg font-medium">Welcome! How would you like to continue?</h2>
+      </div>
+
+      {/* Role cards */}
+      <div className="relative z-10 w-full max-w-sm space-y-4">
+
+        {/* Customer Card */}
+        <button
+          onClick={() => handleSelect("customer")}
+          disabled={selecting !== null}
+          className={`
+            group w-full rounded-2xl p-5 text-left transition-all duration-300
+            bg-white/10 border border-white/15 backdrop-blur-sm
+            hover:bg-white/15 hover:border-[#D9A441]/40 hover:shadow-2xl hover:scale-[1.02]
+            active:scale-[0.99]
+            ${selecting === "customer" ? "scale-[0.99] opacity-80" : ""}
+          `}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#D9A441] to-[#e8b84d] flex items-center justify-center text-3xl shadow-lg flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+              🍕
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-lg text-white leading-tight">Order Food</h3>
+              <p className="text-white/55 text-sm mt-0.5 leading-snug">
+                Browse the menu, place orders & track your food
               </p>
             </div>
-          </SlideUp>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredSignatures.map((item, index) => (
-              <SlideUp key={item.id} delay={index * 0.1}>
-                <Link href="/menu" className="group block">
-                  <div className="relative h-[300px] rounded-2xl overflow-hidden mb-6 bg-forest-soft">
-                    {item.image && (
-                      <Image 
-                        src={item.image} 
-                        alt={item.name} 
-                        fill 
-                        className="object-cover transition-transform duration-700 group-hover:scale-110" 
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500" />
-                    <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold shadow-sm text-foreground">
-                      ₹{item.price}
-                    </div>
-                  </div>
-                  <h3 className="font-serif text-2xl font-bold mb-2 group-hover:text-gold transition-colors text-foreground">{item.name}</h3>
-                  <div className="flex items-center text-muted-foreground text-sm gap-4">
-                    <span className="flex items-center"><Star className="h-4 w-4 text-gold mr-1 fill-gold" /> Signature</span>
-                    <span className="flex items-center"><Clock className="h-4 w-4 mr-1" /> 15-20 Min</span>
-                  </div>
-                </Link>
-              </SlideUp>
-            ))}
-          </div>
-          
-          <div className="text-center mt-12">
-             <Button asChild variant="outline" className="border-forest text-forest hover:bg-forest hover:text-background rounded-full px-8">
-                <Link href="/menu">View Full Menu</Link>
-              </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Alternating Section: Weekly Offers */}
-      <OffersSection />
-
-      {/* Categories */}
-      <section className="py-24 bg-background">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SlideUp>
-            <div className="text-center mb-16">
-              <h2 className="font-serif text-4xl font-bold text-forest">Explore by Category</h2>
+            <div className="text-white/30 group-hover:text-[#D9A441] transition-colors duration-300 flex-shrink-0">
+              {selecting === "customer" ? (
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              )}
             </div>
-          </SlideUp>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-            {menuCategories.map((category, index) => (
-              <SlideUp key={category.id} delay={index * 0.05}>
-                <Link href={`/menu#${category.id}`} className="group block text-center">
-                  <div className="relative w-full aspect-square rounded-full overflow-hidden mb-4 mx-auto max-w-[160px] border-4 border-transparent group-hover:border-gold transition-all duration-300">
-                    <Image 
-                      src={category.image} 
-                      alt={category.name} 
-                      fill 
-                      className="object-cover transition-transform duration-700 group-hover:scale-110" 
-                    />
-                  </div>
-                  <h3 className="font-serif text-lg font-medium group-hover:text-gold transition-colors text-foreground">{category.name.replace(' Menu', '')}</h3>
-                </Link>
-              </SlideUp>
-            ))}
           </div>
-        </div>
-      </section>
+        </button>
 
-      {/* Services */}
-      <section id="services" className="py-24 bg-forest-soft text-background">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <SlideUp>
-              <h4 className="text-gold font-medium tracking-widest uppercase mb-3">Special Services</h4>
-              <h2 className="font-serif text-4xl md:text-5xl font-bold">Make Every Moment Special</h2>
-            </SlideUp>
+        {/* Admin Card */}
+        <button
+          onClick={() => handleSelect("admin")}
+          disabled={selecting !== null}
+          className={`
+            group w-full rounded-2xl p-5 text-left transition-all duration-300
+            bg-white/5 border border-white/10 backdrop-blur-sm
+            hover:bg-white/10 hover:border-[#D9A441]/30 hover:shadow-xl hover:scale-[1.02]
+            active:scale-[0.99]
+            ${selecting === "admin" ? "scale-[0.99] opacity-80" : ""}
+          `}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-3xl shadow-lg flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+              🏪
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-lg text-white/80 leading-tight">Restaurant Login</h3>
+              <p className="text-white/40 text-sm mt-0.5 leading-snug">
+                Manage orders, menu & restaurant operations
+              </p>
+            </div>
+            <div className="text-white/25 group-hover:text-white/60 transition-colors duration-300 flex-shrink-0">
+              {selecting === "admin" ? (
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              )}
+            </div>
           </div>
+        </button>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service, index) => (
-              <SlideUp key={service.id} delay={index * 0.1}>
-                <Card className="bg-forest border-forest-soft/50 text-background h-full hover:border-gold/50 transition-colors">
-                  <CardContent className="p-8 text-center space-y-4 flex flex-col items-center">
-                    <div className="h-16 w-16 rounded-full bg-forest-soft flex items-center justify-center text-gold mb-2">
-                      <Star className="h-8 w-8" />
-                    </div>
-                    <h3 className="font-serif text-2xl font-bold">{service.title}</h3>
-                    <p className="text-background/70">{service.description}</p>
-                    <div className="pt-4 mt-auto">
-                      <Button asChild variant="link" className="text-gold hover:text-gold/80 p-0">
-                         <a href={`https://wa.me/91${restaurantDetails.whatsapp}`} target="_blank" rel="noreferrer">Enquire Now <ArrowRight className="ml-2 h-4 w-4" /></a>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </SlideUp>
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* Testimonials / Review System Placeholder */}
-      <TestimonialsSection />
-
+      {/* Footer note */}
+      <p className="relative z-10 text-white/25 text-xs text-center mt-10">
+        You can switch between experiences from Settings
+      </p>
     </div>
   );
 }

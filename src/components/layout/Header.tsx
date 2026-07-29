@@ -261,7 +261,15 @@ export function Header() {
                     </div>
                   )}
                   
-                  <Link href="/admin/login" className="text-muted-foreground hover:text-forest transition-colors text-xs text-center pt-2">Admin Login</Link>
+                  <button 
+                    onClick={() => {
+                      localStorage.removeItem("pushya_app_role");
+                      router.push("/");
+                    }} 
+                    className="text-muted-foreground hover:text-forest transition-colors text-xs text-center pt-2 w-full"
+                  >
+                    Switch Experience / Admin Login
+                  </button>
                 </div>
               </ScrollArea>
             </SheetContent>

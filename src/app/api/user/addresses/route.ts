@@ -1,72 +1,70 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import * as jose from "jose";
-import { cookies } from "next/headers";
-
-const prisma = new PrismaClient();
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "your-secret-key");
-
-async function getUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth-token')?.value;
-  if (!token) return null;
-  
-  try {
-    const { payload } = await jose.jwtVerify(token, JWT_SECRET);
-    if (!payload.userId) return null;
-    return payload.userId as string;
-  } catch (e) {
-    return null;
-  }
-}
+import { getSession } from "@/lib/services/authService";
+import prisma from "@/lib/prisma";
 
 export async function GET() {
-  const userId = await getUser();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await getSession();
+  if (!session?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const addresses = await prisma.address.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" }
+      where: { userId: session.id as string },
+      orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
     });
     return NextResponse.json({ addresses });
   } catch (error) {
+    console.error("Fetch addresses error:", error);
     return NextResponse.json({ error: "Failed to fetch addresses" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
-  const userId = await getUser();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await getSession();
+  if (!session?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const body = await req.json();
-    const { label, formattedAddress, houseNumber, landmark, instructions, latitude, longitude, isDefault } = body;
+    const {
+      label,
+      formattedAddress,
+      houseNumber,
+      flat,
+      floor,
+      apartment,
+      landmark,
+      instructions,
+      latitude,
+      longitude,
+      isDefault,
+    } = body;
 
-    // If this is set as default, unset other defaults
     if (isDefault) {
       await prisma.address.updateMany({
-        where: { userId, isDefault: true },
-        data: { isDefault: false }
+        where: { userId: session.id as string, isDefault: true },
+        data: { isDefault: false },
       });
     }
 
     const address = await prisma.address.create({
       data: {
-        userId,
-        label,
+        userId: session.id as string,
+        label: label || "Home",
         formattedAddress,
         houseNumber,
+        flat,
+        floor,
+        apartment,
         landmark,
         instructions,
-        latitude,
-        longitude,
-        isDefault: isDefault || false
-      }
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        isDefault: isDefault ?? true,
+      },
     });
 
-    return NextResponse.json({ address });
+    return NextResponse.json({ success: true, address });
   } catch (error) {
+    console.error("Create address error:", error);
     return NextResponse.json({ error: "Failed to create address" }, { status: 500 });
   }
 }
