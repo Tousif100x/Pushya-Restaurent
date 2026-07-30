@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { decrypt } from "@/lib/jwt";
 
-const ADMIN_ROUTES = ["/admin/dashboard", "/admin/settings"];
+const ADMIN_ROUTES = ["/admin/dashboard", "/admin/settings", "/admin/menu", "/admin/profile"];
 const AUTH_REQUIRED_CUSTOMER_ROUTES = ["/checkout", "/profile"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ─── Protect Admin Routes ─────────────────────────────────────────────────
-  const isAdminProtected = ADMIN_ROUTES.some((r) => pathname.startsWith(r));
+  const isAdminProtected = pathname.startsWith("/admin/") && pathname !== "/admin/login";
   if (isAdminProtected) {
     const sessionCookie = request.cookies.get("session")?.value;
     const session = sessionCookie ? await decrypt(sessionCookie) : null;
@@ -38,8 +38,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/admin/dashboard/:path*",
-    "/admin/settings/:path*",
+    "/admin/:path*",
     "/checkout",
     "/profile/:path*",
   ],
