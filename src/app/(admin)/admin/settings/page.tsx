@@ -186,8 +186,11 @@ export default function AdminSettingsPage() {
               id="closingTime"
               value={settings.closingTime}
               onChange={(e) => update("closingTime", e.target.value)}
-              placeholder="e.g. 10:00 PM"
+              placeholder="e.g. 11:00 PM or 12:00 AM"
             />
+            <p className="text-[10px] text-muted-foreground">
+              Tip: 12:00 PM = Noon. Use <strong>11:00 PM</strong>, <strong>11:59 PM</strong>, or <strong>12:00 AM</strong> for night closing.
+            </p>
           </div>
 
           <div className="space-y-1.5">
