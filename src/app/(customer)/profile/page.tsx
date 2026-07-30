@@ -183,20 +183,21 @@ export default function ProfilePage() {
                   <label className="text-xs text-muted-foreground uppercase tracking-wider block">Mobile Number</label>
                   <p className="font-medium text-forest">+91 {user.phone}</p>
                 </div>
-                <div className="flex gap-2 pt-1">
+                <div className="grid grid-cols-2 gap-2 pt-1">
                   <Button
                     variant="outline"
-                    className="flex-1 text-xs h-8 border-forest/20 text-forest"
+                    className="w-full text-xs h-9 px-2 border-forest/20 text-forest truncate"
                     onClick={() => setEditModal({ isOpen: true, name: user.name || "" })}
                   >
                     Edit Name
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 text-xs h-8 border-gold/40 text-forest hover:bg-gold/10"
+                    className="w-full text-xs h-9 px-2 border-gold/40 text-forest hover:bg-gold/10 truncate flex items-center justify-center gap-1"
                     onClick={() => setPassModal({ isOpen: true, currentPassword: "", newPassword: "", confirmPassword: "" })}
                   >
-                    <Lock className="w-3 h-3 mr-1" /> Password
+                    <Lock className="w-3 h-3 shrink-0 text-gold" />
+                    <span>Password</span>
                   </Button>
                 </div>
               </CardContent>

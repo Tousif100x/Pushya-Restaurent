@@ -77,45 +77,47 @@ export function Header() {
         {/* Action Icons */}
         <div className="flex items-center gap-3">
 
-          {/* Profile & Logout Action Buttons */}
+          {/* Profile & Logout Action Buttons (Desktop Only — Mobile uses Drawer) */}
           {isMounted && (
-            isAuthenticated ? (
-              <div className="flex items-center gap-1.5">
+            <div className="hidden md:flex items-center gap-2">
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="border-gold/40 text-forest hover:bg-gold/10 font-bold text-xs h-9 px-3 flex items-center gap-1.5"
+                  >
+                    <Link href="/profile">
+                      <UserIcon className="h-4 w-4 text-gold fill-gold" />
+                      <span>My Account</span>
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={async () => {
+                      localStorage.removeItem("pushya_app_role");
+                      await logout();
+                      router.push("/");
+                    }}
+                    className="border-red-200 text-red-600 hover:bg-red-50 h-9 w-9"
+                    title="Logout"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
                 <Button
                   asChild
-                  variant="outline"
-                  className="border-gold/40 text-forest hover:bg-gold/10 font-bold text-xs h-9 px-3 flex items-center gap-1.5"
+                  className="bg-forest text-white hover:bg-forest/90 font-semibold text-xs h-9 px-4 flex items-center gap-1.5 shadow-xs"
                 >
-                  <Link href="/profile">
-                    <UserIcon className="h-4 w-4 text-gold fill-gold" />
-                    <span>My Account</span>
+                  <Link href="/login">
+                    <UserIcon className="h-4 w-4" />
+                    <span>Login</span>
                   </Link>
                 </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={async () => {
-                    localStorage.removeItem("pushya_app_role");
-                    await logout();
-                    router.push("/");
-                  }}
-                  className="border-red-200 text-red-600 hover:bg-red-50 h-9 w-9"
-                  title="Logout"
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <Button
-                asChild
-                className="bg-forest text-white hover:bg-forest/90 font-semibold text-xs h-9 px-3 flex items-center gap-1.5 shadow-xs"
-              >
-                <Link href="/login">
-                  <UserIcon className="h-4 w-4" />
-                  <span>Login</span>
-                </Link>
-              </Button>
-            )
+              )}
+            </div>
           )}
 
           {/* Cart Bag Drawer */}
