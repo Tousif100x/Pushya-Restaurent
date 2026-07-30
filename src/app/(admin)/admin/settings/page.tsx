@@ -7,48 +7,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Save, Store, Clock, Truck, Phone } from "lucide-react";
-import Link from "next/link";
+import { Loader2, Save, Store, Clock, Truck, Phone, User, Calendar, ShieldAlert } from "lucide-react";
 
 interface Settings {
   openingTime: string;
   closingTime: string;
   isAcceptingOrders: boolean;
+  statusMode: string;
   holidayMode: boolean;
+  weeklyHolidays: string;
   deliveryRadiusKm: number;
   baseDeliveryCharge: number;
+  minOrderValue: number;
   estimatedPrepTime: string;
   contactPhone: string;
   contactWhatsapp: string;
+  ownerName: string;
   address: string;
 }
 
 export default function AdminSettingsPage() {
   const router = useRouter();
   const [settings, setSettings] = useState<Settings>({
-    openingTime: "10:00 AM",
+    openingTime: "08:00 AM",
     closingTime: "10:00 PM",
     isAcceptingOrders: true,
+    statusMode: "ACCEPTING",
     holidayMode: false,
+    weeklyHolidays: "",
     deliveryRadiusKm: 4,
     baseDeliveryCharge: 20,
+    minOrderValue: 0,
     estimatedPrepTime: "25-30 mins",
     contactPhone: "9098382993",
     contactWhatsapp: "9098382993",
+    ownerName: "Pushya Admin",
     address: "Shri Krishna Paradise, Near, Rau Cir, Rau, Indore",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && localStorage.getItem("adminAuth") !== "true") {
-      router.push("/admin/login");
-      return;
-    }
     fetchSettings();
-  }, [router]);
+  }, []);
 
   const fetchSettings = async () => {
     try {
@@ -57,7 +59,7 @@ export default function AdminSettingsPage() {
         const data = await res.json();
         setSettings(data);
       }
-    } catch (e) {
+    } catch {
       toast.error("Could not load settings");
     } finally {
       setLoading(false);
@@ -73,11 +75,11 @@ export default function AdminSettingsPage() {
         body: JSON.stringify(settings),
       });
       if (res.ok) {
-        toast.success("Settings saved successfully!");
+        toast.success("Settings saved successfully! Controls take effect immediately.");
       } else {
         toast.error("Failed to save settings");
       }
-    } catch (e) {
+    } catch {
       toast.error("An error occurred while saving");
     } finally {
       setSaving(false);
@@ -89,213 +91,234 @@ export default function AdminSettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-28 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-forest" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 animate-spin text-[#10261B]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 pt-24 pb-20">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" asChild className="pl-0 hover:bg-transparent hover:text-forest">
-            <Link href="/admin/dashboard">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Dashboard
-            </Link>
-          </Button>
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-serif text-forest">Restaurant Settings</h1>
-          <p className="text-muted-foreground mt-1">
-            Changes take effect immediately for all customers.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold font-serif text-[#10261B]">
+          Restaurant Operations & Settings
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+          Centralized business controls — changes apply live to all customers instantly
+        </p>
+      </div>
 
-        {/* Status Controls */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Store className="h-5 w-5 text-forest" /> Restaurant Status
-            </CardTitle>
-            <CardDescription>
-              Control whether the restaurant is open for orders right now.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div>
-                <p className="font-semibold">Accept Orders</p>
-                <p className="text-sm text-muted-foreground">
-                  Customers can place new orders when this is ON.
-                </p>
-              </div>
-              <Switch
-                checked={settings.isAcceptingOrders}
-                onCheckedChange={(v: boolean) => update("isAcceptingOrders", v)}
-                className="data-[state=checked]:bg-forest"
-              />
-            </div>
-            <div className="flex items-center justify-between rounded-lg border p-4 bg-red-50 border-red-200">
-              <div>
-                <p className="font-semibold text-red-700">Holiday / Closed Mode</p>
-                <p className="text-sm text-red-600">
-                  Disables all orders and shows "Closed" to customers.
-                </p>
-              </div>
-              <Switch
-                checked={settings.holidayMode}
-                onCheckedChange={(v: boolean) => update("holidayMode", v)}
-                className="data-[state=checked]:bg-red-600"
-              />
-            </div>
-          </CardContent>
-        </Card>
+      {/* Quick Operations Mode */}
+      <Card className="border-gray-200">
+        <CardHeader>
+          <CardTitle className="text-lg font-serif flex items-center gap-2 text-[#10261B]">
+            <Store className="w-5 h-5 text-[#D9A441]" /> Store Operational Status
+          </CardTitle>
+          <CardDescription>
+            Select current restaurant operating mode.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { id: "ACCEPTING", label: "🟢 Accepting Orders", desc: "Open & receiving orders" },
+              { id: "BUSY", label: "🟡 Busy Mode", desc: "High demand, +15m prep" },
+              { id: "PAUSED", label: "🟠 Paused", desc: "Temp paused for orders" },
+              { id: "CLOSED", label: "🔴 Closed Mode", desc: "Closed for business" },
+            ].map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => {
+                  update("statusMode", m.id);
+                  update("isAcceptingOrders", m.id === "ACCEPTING" || m.id === "BUSY");
+                  update("holidayMode", m.id === "CLOSED");
+                }}
+                className={`p-3 rounded-xl border text-left transition-all ${
+                  settings.statusMode === m.id
+                    ? "border-[#10261B] bg-[#10261B]/5 ring-1 ring-[#10261B]"
+                    : "border-gray-200 hover:border-[#D9A441]/50 bg-white"
+                }`}
+              >
+                <p className="font-bold text-xs sm:text-sm">{m.label}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{m.desc}</p>
+              </button>
+            ))}
+          </div>
 
-        {/* Timings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-forest" /> Operating Hours
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="openingTime">Opening Time</Label>
-              <Input
-                id="openingTime"
-                value={settings.openingTime}
-                onChange={(e) => update("openingTime", e.target.value)}
-                placeholder="e.g. 10:00 AM"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="closingTime">Closing Time</Label>
-              <Input
-                id="closingTime"
-                value={settings.closingTime}
-                onChange={(e) => update("closingTime", e.target.value)}
-                placeholder="e.g. 10:00 PM"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="prepTime">Estimated Prep Time</Label>
-              <Input
-                id="prepTime"
-                value={settings.estimatedPrepTime}
-                onChange={(e) => update("estimatedPrepTime", e.target.value)}
-                placeholder="e.g. 25-30 mins"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Delivery */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Truck className="h-5 w-5 text-forest" /> Delivery Configuration
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="deliveryRadius">Delivery Radius (km)</Label>
-              <Input
-                id="deliveryRadius"
-                type="number"
-                min={1}
-                max={20}
-                step={0.5}
-                value={settings.deliveryRadiusKm}
-                onChange={(e) => update("deliveryRadiusKm", parseFloat(e.target.value))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="baseCharge">Base Delivery Charge (₹)</Label>
-              <Input
-                id="baseCharge"
-                type="number"
-                min={0}
-                value={settings.baseDeliveryCharge}
-                onChange={(e) => update("baseDeliveryCharge", parseFloat(e.target.value))}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Contact */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Phone className="h-5 w-5 text-forest" /> Contact Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="contactPhone">Phone Number</Label>
-              <Input
-                id="contactPhone"
-                value={settings.contactPhone}
-                onChange={(e) => update("contactPhone", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp Number</Label>
-              <Input
-                id="whatsapp"
-                value={settings.contactWhatsapp}
-                onChange={(e) => update("contactWhatsapp", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2 col-span-full">
-              <Label htmlFor="address">Restaurant Address</Label>
-              <Input
-                id="address"
-                value={settings.address}
-                onChange={(e) => update("address", e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Experience Switcher */}
-        <Card className="border-gold/30 bg-gold/5">
-          <CardHeader>
-            <CardTitle className="text-base font-bold text-forest">App Mode / Experience</CardTitle>
-            <CardDescription>Switch experience mode or return to the initial role selection screen.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center justify-between rounded-lg border p-4 bg-gray-50 mt-4">
             <div>
-              <p className="font-semibold text-sm">Current Mode: <span className="text-gold font-bold">Restaurant Admin</span></p>
-              <p className="text-xs text-muted-foreground mt-0.5">Clears default role preference and opens entry screen.</p>
+              <p className="font-semibold text-sm">Accepting New Orders Toggle</p>
+              <p className="text-xs text-muted-foreground">
+                Customers can place orders when ON. When OFF, menu is browse-only.
+              </p>
             </div>
-            <Button
-              variant="outline"
-              className="border-forest text-forest hover:bg-forest hover:text-white"
-              onClick={() => {
-                localStorage.removeItem("pushya_app_role");
-                router.push("/");
-              }}
-            >
-              Switch Experience
-            </Button>
-          </CardContent>
-        </Card>
+            <Switch
+              checked={settings.isAcceptingOrders}
+              onCheckedChange={(v: boolean) => update("isAcceptingOrders", v)}
+              className="data-[state=checked]:bg-[#10261B]"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="flex justify-end pb-8">
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-forest hover:bg-forest/90 text-white px-8 h-12 text-base rounded-full"
-          >
-            {saving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            Save All Changes
-          </Button>
-        </div>
+      {/* Operating Hours & Off-Days */}
+      <Card className="border-gray-200">
+        <CardHeader>
+          <CardTitle className="text-lg font-serif flex items-center gap-2 text-[#10261B]">
+            <Clock className="w-5 h-5 text-[#D9A441]" /> Operating Hours & Prep Time
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="openingTime" className="text-xs font-semibold">Opening Time</Label>
+            <Input
+              id="openingTime"
+              value={settings.openingTime}
+              onChange={(e) => update("openingTime", e.target.value)}
+              placeholder="e.g. 08:00 AM"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="closingTime" className="text-xs font-semibold">Closing Time</Label>
+            <Input
+              id="closingTime"
+              value={settings.closingTime}
+              onChange={(e) => update("closingTime", e.target.value)}
+              placeholder="e.g. 10:00 PM"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="prepTime" className="text-xs font-semibold">Est. Prep Time</Label>
+            <Input
+              id="prepTime"
+              value={settings.estimatedPrepTime}
+              onChange={(e) => update("estimatedPrepTime", e.target.value)}
+              placeholder="e.g. 25-30 mins"
+            />
+          </div>
+
+          <div className="space-y-1.5 sm:col-span-3">
+            <Label htmlFor="weeklyHolidays" className="text-xs font-semibold">Weekly Off-Days / Holidays (Optional)</Label>
+            <Input
+              id="weeklyHolidays"
+              value={settings.weeklyHolidays || ""}
+              onChange={(e) => update("weeklyHolidays", e.target.value)}
+              placeholder="e.g. Tuesday (or leave empty if open 7 days)"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Delivery & Order Thresholds */}
+      <Card className="border-gray-200">
+        <CardHeader>
+          <CardTitle className="text-lg font-serif flex items-center gap-2 text-[#10261B]">
+            <Truck className="w-5 h-5 text-[#D9A441]" /> Delivery Radius & Charges
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="deliveryRadius" className="text-xs font-semibold">Delivery Radius (km)</Label>
+            <Input
+              id="deliveryRadius"
+              type="number"
+              min={1}
+              max={20}
+              step={0.5}
+              value={settings.deliveryRadiusKm}
+              onChange={(e) => update("deliveryRadiusKm", parseFloat(e.target.value))}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="baseCharge" className="text-xs font-semibold">Base Delivery Charge (₹)</Label>
+            <Input
+              id="baseCharge"
+              type="number"
+              min={0}
+              value={settings.baseDeliveryCharge}
+              onChange={(e) => update("baseDeliveryCharge", parseFloat(e.target.value))}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="minOrderValue" className="text-xs font-semibold">Min. Order Value (₹)</Label>
+            <Input
+              id="minOrderValue"
+              type="number"
+              min={0}
+              value={settings.minOrderValue}
+              onChange={(e) => update("minOrderValue", parseFloat(e.target.value))}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Contact & Business Info */}
+      <Card className="border-gray-200">
+        <CardHeader>
+          <CardTitle className="text-lg font-serif flex items-center gap-2 text-[#10261B]">
+            <User className="w-5 h-5 text-[#D9A441]" /> Restaurant Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="ownerName" className="text-xs font-semibold">Owner / Manager Name</Label>
+            <Input
+              id="ownerName"
+              value={settings.ownerName || ""}
+              onChange={(e) => update("ownerName", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="contactPhone" className="text-xs font-semibold">Phone Number</Label>
+            <Input
+              id="contactPhone"
+              value={settings.contactPhone}
+              onChange={(e) => update("contactPhone", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="whatsapp" className="text-xs font-semibold">WhatsApp Business Number</Label>
+            <Input
+              id="whatsapp"
+              value={settings.contactWhatsapp}
+              onChange={(e) => update("contactWhatsapp", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="address" className="text-xs font-semibold">Restaurant Full Address</Label>
+            <Input
+              id="address"
+              value={settings.address}
+              onChange={(e) => update("address", e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end pb-8">
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-[#10261B] hover:bg-[#10261B]/90 text-white px-8 h-12 text-base rounded-xl font-semibold shadow-md"
+        >
+          {saving ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Save className="w-4 h-4" /> Save All Business Settings
+            </span>
+          )}
+        </Button>
       </div>
     </div>
   );

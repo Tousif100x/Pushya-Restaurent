@@ -30,16 +30,20 @@ model Admin {
 
 model RestaurantSettings {
   id                 String   @id @default("default")
-  openingTime        String   @default("10:00 AM")
+  openingTime        String   @default("08:00 AM")
   closingTime        String   @default("10:00 PM")
   isAcceptingOrders  Boolean  @default(true)
+  statusMode         String   @default("ACCEPTING") // ACCEPTING, BUSY, PAUSED, CLOSED
   holidayMode        Boolean  @default(false)
+  weeklyHolidays     String   @default("[]") // JSON string of off-days
   deliveryRadiusKm   Float    @default(4.0)
   baseDeliveryCharge Float    @default(20.0)
+  minOrderValue      Float    @default(0.0)
   distanceSlabs      Json     @default("[{\"maxKm\": 2, \"charge\": 20}, {\"maxKm\": 4, \"charge\": 40}]")
   estimatedPrepTime  String   @default("25-30 mins")
   contactPhone       String   @default("9098382993")
   contactWhatsapp    String   @default("9098382993")
+  ownerName          String   @default("Pushya Admin")
   address            String   @default("Shri Krishna Paradise, Near, Rau Cir, Rau, Indore")
   latitude           Float    @default(22.6378)
   longitude          Float    @default(75.8073)
