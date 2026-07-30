@@ -18,7 +18,7 @@ export default function EntryScreen() {
     if (savedRole === "customer") {
       router.replace("/home");
     } else if (savedRole === "admin") {
-      router.replace("/admin/login");
+      router.replace("/admin/dashboard");
     }
   }, [router]);
 

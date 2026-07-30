@@ -50,12 +50,19 @@ export async function POST(req: Request) {
     try {
       notificationProvider.initBackend();
       
-      const admin = await prisma.admin.findFirst();
-      if (admin && admin.fcmTokens && admin.fcmTokens.length > 0) {
+      const admins = await prisma.admin.findMany({
+        select: { fcmTokens: true },
+      });
+
+      const allTokens = Array.from(
+        new Set(admins.flatMap((a) => a.fcmTokens || []).filter(Boolean))
+      );
+
+      if (allTokens.length > 0) {
         const itemCount = items.length;
         const orderNum = order.id.slice(-6).toUpperCase();
         
-        await notificationProvider.sendToTokens(admin.fcmTokens, {
+        await notificationProvider.sendToTokens(allTokens, {
           title: `🔔 New Order #${orderNum}!`,
           body: `${customerName} | ${itemCount} item${itemCount > 1 ? 's' : ''} | ₹${totalAmount} | Tap to view`,
           url: `/admin/dashboard`,
@@ -66,7 +73,6 @@ export async function POST(req: Request) {
         });
       }
     } catch (notifError) {
-      // Do not fail the order if notification fails
       console.error("Push notification failed (non-critical):", notifError);
     }
 
