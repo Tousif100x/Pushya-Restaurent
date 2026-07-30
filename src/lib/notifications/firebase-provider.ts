@@ -51,10 +51,39 @@ export class FirebaseNotificationProvider implements NotificationProvider {
           title: payload.title,
           body: payload.body,
         },
-        data: payload.data ?? {},
-        webpush: payload.url
-          ? { fcmOptions: { link: payload.url } }
-          : undefined,
+        data: {
+          ...(payload.data ?? {}),
+          title: payload.title,
+          body: payload.body,
+          url: payload.url || '/admin/dashboard',
+        },
+        android: {
+          priority: 'high',
+          notification: {
+            sound: 'default',
+            priority: 'high',
+            channelId: 'admin_orders',
+            defaultSound: true,
+            defaultVibrateTimings: true,
+          },
+        },
+        webpush: {
+          headers: {
+            Urgency: 'high',
+            TTL: '86400',
+          },
+          notification: {
+            title: payload.title,
+            body: payload.body,
+            icon: '/icon512_maskable.png',
+            badge: '/icon512_maskable.png',
+            requireInteraction: true,
+            tag: payload.data?.orderId || 'new-order',
+          },
+          fcmOptions: {
+            link: payload.url || '/admin/dashboard',
+          },
+        },
       });
 
       console.log(

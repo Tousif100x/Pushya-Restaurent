@@ -1,32 +1,11 @@
+// Custom PWA Service Worker extension for Pushya Planet
+declare const importScripts: any;
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-let firebaseConfig = null;
-
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-  event.waitUntil(
-    fetch('/api/firebase-config')
-      .then(r => r.json())
-      .then(config => {
-        if (config && config.apiKey) {
-          firebaseConfig = config;
-          if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-          }
-        }
-      })
-      .catch(err => console.warn('[firebase-messaging-sw.js] Could not fetch config:', err))
-  );
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
-});
-
-// Native push handler guarantees 100% notification display on locked phone screen & closed app
-self.addEventListener('push', function(event) {
-  console.log('[firebase-messaging-sw.js] Native push event received:', event);
+// Native push listener for background notifications when app is closed / phone is locked
+self.addEventListener('push', function(event: any) {
+  console.log('[SW worker/index.ts] Native push event received:', event);
 
   let title = '🔔 New Order Received!';
   let body = 'You have a new order pending. Tap to view.';
@@ -60,11 +39,11 @@ self.addEventListener('push', function(event) {
     ]
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil((self as any).registration.showNotification(title, options));
 });
 
 // Notification click handler
-self.addEventListener('notificationclick', function(event) {
+self.addEventListener('notificationclick', function(event: any) {
   event.notification.close();
 
   if (event.action === 'dismiss') return;
@@ -72,13 +51,13 @@ self.addEventListener('notificationclick', function(event) {
   const url = event.notification.data?.url || '/admin/dashboard';
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(windowClients) {
+    (self as any).clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(windowClients: any[]) {
       for (const client of windowClients) {
         if (client.url.includes('/admin') && 'focus' in client) {
           return client.focus();
         }
       }
-      return clients.openWindow(url);
+      return (self as any).clients.openWindow(url);
     })
   );
 });
