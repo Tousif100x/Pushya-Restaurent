@@ -104,11 +104,10 @@ export default function HomePage() {
                       {!isInstalled && (
                         <Button
                           size="lg"
-                          variant="outline"
-                          className="border-white/60 text-white hover:bg-white/10 rounded-full px-8 text-base backdrop-blur-sm"
-                          onClick={() => isInstallPromptSupported ? promptInstall() : setIsInstallModalOpen(true)}
+                          className="bg-white/20 hover:bg-white/30 text-white border border-white/50 backdrop-blur-md rounded-full px-8 text-base font-bold shadow-lg transition-all"
+                          onClick={() => (isInstallPromptSupported ? promptInstall() : setIsInstallModalOpen(true))}
                         >
-                          <Download className="mr-2 h-4 w-4" />
+                          <Download className="mr-2 h-5 w-5 text-gold" />
                           Install App
                         </Button>
                       )}
