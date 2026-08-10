@@ -8,7 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// RBAC-ready role enum — designed to scale without auth redesign
+// RBAC-ready role enum
 enum Role {
   USER
   ADMIN
@@ -29,27 +29,30 @@ model Admin {
 }
 
 model RestaurantSettings {
-  id                 String   @id @default("default")
-  openingTime        String   @default("08:00 AM")
-  closingTime        String   @default("10:00 PM")
-  isAcceptingOrders  Boolean  @default(true)
-  statusMode         String   @default("ACCEPTING") // ACCEPTING, BUSY, PAUSED, CLOSED
-  holidayMode        Boolean  @default(false)
-  weeklyHolidays     String   @default("[]") // JSON string of off-days
-  deliveryRadiusKm   Float    @default(4.0)
-  baseDeliveryCharge Float    @default(20.0)
-  minOrderValue      Float    @default(0.0)
-  distanceSlabs      Json     @default("[{\"maxKm\": 2, \"charge\": 20}, {\"maxKm\": 4, \"charge\": 40}]")
-  estimatedPrepTime  String   @default("25-30 mins")
-  contactPhone       String   @default("9098382993")
-  contactWhatsapp    String   @default("9098382993")
-  ownerName          String   @default("Pushya Admin")
-  address            String   @default("Shri Krishna Paradise, Near, Rau Cir, Rau, Indore")
-  latitude           Float    @default(22.6378)
-  longitude          Float    @default(75.8073)
-  mapLink            String   @default("https://maps.google.com/?q=Pushya+Pizza+and+Sandwich+Planet+Rau")
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                      String   @id @default("default")
+  openingTime             String   @default("08:00 AM")
+  closingTime             String   @default("10:00 PM")
+  isAcceptingOrders       Boolean  @default(true)
+  statusMode              String   @default("ACCEPTING") // ACCEPTING, BUSY, PAUSED, CLOSED
+  holidayMode             Boolean  @default(false)
+  weeklyHolidays          String   @default("[]") // JSON string of off-days
+  deliveryRadiusKm        Float    @default(4.0)
+  baseDeliveryCharge      Float    @default(20.0)
+  minOrderValue           Float    @default(0.0)
+  distanceSlabs           Json     @default("[{\"maxKm\": 2, \"charge\": 20}, {\"maxKm\": 4, \"charge\": 40}]")
+  estimatedPrepTime       String   @default("25-30 mins")
+  contactPhone            String   @default("9098382993")
+  contactWhatsapp         String   @default("9098382993")
+  ownerName               String   @default("Pushya Admin")
+  address                 String   @default("Shri Krishna Paradise, Near, Rau Cir, Rau, Indore")
+  latitude                Float    @default(22.6378)
+  longitude               Float    @default(75.8073)
+  mapLink                 String   @default("https://maps.google.com/?q=Pushya+Pizza+and+Sandwich+Planet+Rau")
+  // Response timeout settings (minutes)
+  orderResponseTimeoutMin Int      @default(10)
+  modResponseTimeoutMin   Int      @default(5)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }
 
 model Category {
@@ -109,9 +112,10 @@ model Service {
 model User {
   id        String    @id @default(uuid())
   phone     String    @unique
-  password  String    // bcrypt hashed — replaces OTP
+  password  String    // bcrypt hashed
   name      String?
   role      Role      @default(USER)
+  fcmTokens String[]  // For push notifications to customer
   orders    Order[]
   addresses Address[]
   createdAt DateTime  @default(now())
@@ -137,6 +141,16 @@ model Address {
   updatedAt        DateTime @updatedAt
 }
 
+// ORDER STATUS MACHINE:
+// PENDING → APPROVED / MODIFICATION_REQUESTED / CANCELLED_BY_RESTAURANT
+// APPROVED → AWAITING_PAYMENT (if Razorpay) / PREPARING (COD)
+// AWAITING_PAYMENT → PAYMENT_CONFIRMED / CANCELLED (payment failed)
+// PAYMENT_CONFIRMED / PREPARING → READY_FOR_DELIVERY
+// READY_FOR_DELIVERY → OUT_FOR_DELIVERY
+// OUT_FOR_DELIVERY → DELIVERED (by owner) or DELIVERY_FAILED
+// DELIVERED → final
+// MODIFICATION_REQUESTED → APPROVED / CANCELLED_BY_CUSTOMER
+
 model Order {
   id                   String      @id @default(uuid())
   userId               String?
@@ -158,8 +172,29 @@ model Order {
   totalAmount          Float
   deliveryFee          Float       @default(0)
   deliveryCharge       Float?
-  status               String      @default("PENDING") // PENDING, MODIFICATION_REQUESTED, APPROVED, OUT_FOR_DELIVERY, DELIVERED, CANCELLED
+
+  // Order status (full state machine)
+  status               String      @default("PENDING")
+  // Valid statuses:
+  // PENDING | MODIFICATION_REQUESTED | APPROVED | AWAITING_PAYMENT
+  // PAYMENT_CONFIRMED | PREPARING | READY_FOR_DELIVERY | OUT_FOR_DELIVERY
+  // AWAITING_CUSTOMER_CONFIRM | DELIVERED | CANCELLED_BY_CUSTOMER
+  // CANCELLED_BY_RESTAURANT | DELIVERY_FAILED
+
+  // Payment
+  paymentStatus        String      @default("NOT_REQUIRED")
+  // NOT_REQUIRED | PENDING | PAID | FAILED | REFUND_REQUIRED | PARTIALLY_REFUNDED | REFUNDED
+  razorpayOrderId      String?
+  razorpayPaymentId    String?
+  razorpaySignature    String?
+  paidAmount           Float?
+  paidAt               DateTime?
+  refundId             String?
+  refundAmount         Float?
+  refundedAt           DateTime?
+
   isAcknowledged       Boolean     @default(false)
+  modificationNote     String?     // Note from owner when modifying
   items                OrderItem[]
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt

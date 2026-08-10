@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { notificationProvider } from "@/lib/notifications";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -9,11 +10,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // modifications is an array of { itemId: string, status: string, replacedWith: string | null }
 
     // Use a transaction to update the order status and all item statuses
-    await prisma.$transaction(async (tx) => {
+    const order = await prisma.$transaction(async (tx) => {
       // Update the main order status to MODIFICATION_REQUESTED
-      const order = await tx.order.update({
-        where: { id: id },
-        data: { status: "MODIFICATION_REQUESTED" }
+      const updatedOrder = await tx.order.update({
+        where: { id },
+        data: { status: "MODIFICATION_REQUESTED" },
+        include: { user: { select: { fcmTokens: true } } },
       });
 
       // Update each modified item
@@ -22,11 +24,29 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           where: { id: mod.itemId },
           data: {
             status: mod.status,
-            replacedWith: mod.replacedWith
-          }
+            replacedWith: mod.replacedWith,
+          },
         });
       }
+
+      return updatedOrder;
     });
+
+    // Send push notification to customer
+    try {
+      const customerTokens = (order.user as any)?.fcmTokens || [];
+      if (customerTokens.length > 0) {
+        notificationProvider.initBackend();
+        await notificationProvider.sendToTokens(customerTokens, {
+          title: "⚠️ Action Needed on Your Order",
+          body: "The restaurant has a modification to suggest for your order. Tap to review.",
+          url: `/order/${id}`,
+          data: { orderId: id, url: `/order/${id}` },
+        });
+      }
+    } catch (notifErr) {
+      console.error("Customer modification push failed:", notifErr);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

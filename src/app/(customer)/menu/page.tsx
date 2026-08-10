@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { menuCategories as fallbackCategories, signatureItems } from "@/data/menu";
 import { useCartStore } from "@/store/useCartStore";
 import { Button } from "@/components/ui/button";
@@ -11,17 +12,23 @@ import Image from "next/image";
 import { Search, Plus, Minus, Info, Ban } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-export default function MenuPage() {
+function MenuPageContent() {
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [isDbLoaded, setIsDbLoaded] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const didScrollRef = useRef(false);
 
+  const searchParams = useSearchParams();
   const { items: cartItems, addItem, updateQuantity, removeItem } = useCartStore();
 
   useEffect(() => {
     setIsMounted(true);
+    const cat = searchParams.get("category");
+    if (cat) setActiveCategory(cat);
+
     // Fetch live menu from DB
     fetch("/api/admin/menu")
       .then((r) => r.json())
@@ -33,7 +40,23 @@ export default function MenuPage() {
         }
       })
       .catch(console.error);
-  }, []);
+  }, [searchParams]);
+
+  // Auto-scroll to category after data loads
+  useEffect(() => {
+    if (!isDbLoaded || !activeCategory || didScrollRef.current) return;
+    const scrollToCategory = () => {
+      const el = document.getElementById(activeCategory);
+      if (el) {
+        const y = el.getBoundingClientRect().top + window.scrollY - 140;
+        window.scrollTo({ top: y, behavior: "smooth" });
+        didScrollRef.current = true;
+      }
+    };
+    // Small delay to let the DOM render
+    const timeout = setTimeout(scrollToCategory, 300);
+    return () => clearTimeout(timeout);
+  }, [isDbLoaded, activeCategory]);
 
   const getCartQuantity = (itemId: string) => {
     return cartItems.find((i) => i.id === itemId)?.quantity || 0;
@@ -270,5 +293,21 @@ export default function MenuPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MenuPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-background min-h-screen pt-24 pb-20">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="h-16 w-48 bg-muted animate-pulse rounded-lg mb-12" />
+          </div>
+        </div>
+      }
+    >
+      <MenuPageContent />
+    </Suspense>
   );
 }

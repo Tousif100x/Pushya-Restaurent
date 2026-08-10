@@ -200,7 +200,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
             {menuCategories.map((category, index) => (
               <SlideUp key={category.id} delay={index * 0.05}>
-                <Link href={`/menu#${category.id}`} className="group block text-center">
+                <Link href={`/menu?category=${category.id}`} className="group block text-center">
                   <div className="relative w-full aspect-square rounded-full overflow-hidden mb-3 mx-auto max-w-[140px] border-4 border-transparent group-hover:border-gold transition-all duration-300">
                     <Image src={category.image} alt={category.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                   </div>

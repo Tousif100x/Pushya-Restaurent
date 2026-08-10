@@ -211,7 +211,7 @@ export default function CheckoutPage() {
 
       const data = await response.json();
       if (data.success) {
-        // Optionally save new address for logged in user if it was a new address
+        // Optionally save new address for logged in user
         if (isAuthenticated && selectedAddressId === "new" && location) {
           fetch("/api/user/addresses", {
             method: "POST",
@@ -232,8 +232,65 @@ export default function CheckoutPage() {
           }).catch(console.error);
         }
 
+        // Generate WhatsApp message for restaurant owner
+        const orderNum = data.orderId.slice(-6).toUpperCase();
+        const mapsLink = location
+          ? `https://maps.google.com/?q=${location.lat},${location.lng}`
+          : "Not provided";
+
+        const itemLines = items
+          .map((item) => `  • ${item.name} × ${item.quantity} = ₹${item.price * item.quantity}`)
+          .join("\n");
+
+        const fullAddrLine = [
+          formData.houseNumber,
+          formData.flat,
+          formData.floor && `Floor ${formData.floor}`,
+          formData.apartment,
+          formData.landmark && `Near ${formData.landmark}`,
+          location?.address,
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+        const waMessage = [
+          `🛒 *NEW ORDER #${orderNum}*`,
+          ``,
+          `👤 *Customer:* ${formData.name}`,
+          `📞 *Phone:* ${formData.phone}`,
+          ``,
+          `📦 *Items:*`,
+          itemLines,
+          ``,
+          `💰 *Subtotal:* ₹${subtotal}`,
+          `🚴 *Delivery Fee:* ₹${deliveryFee}`,
+          `🏷 *TOTAL: ₹${total}*`,
+          ``,
+          `📍 *Delivery Address:*`,
+          fullAddrLine,
+          ``,
+          `🗺 *Google Maps:* ${mapsLink}`,
+          formData.instructions ? `📝 *Instructions:* ${formData.instructions}` : "",
+          ``,
+          `🔗 *Order Link:* ${window.location.origin}/order/${data.orderId}`,
+          ``,
+          `_Reply ACCEPT / MODIFY / CANCEL to this order_`,
+        ]
+          .filter((l) => l !== undefined)
+          .join("\n");
+
+        const ownerPhone = restaurantSettings?.contactWhatsapp || "9098382993";
+        const waUrl = `https://wa.me/91${ownerPhone}?text=${encodeURIComponent(waMessage)}`;
+
         clearCart();
-        router.push(`/order/${data.orderId}`);
+
+        // Open WhatsApp in same window (or new tab on desktop) then navigate to order page
+        window.open(waUrl, "_blank", "noopener,noreferrer");
+
+        // Navigate to order tracking after small delay
+        setTimeout(() => {
+          router.push(`/order/${data.orderId}`);
+        }, 800);
       } else {
         alert("Failed to place order. Please try again.");
         setIsSubmitting(false);
@@ -519,15 +576,15 @@ export default function CheckoutPage() {
                   >
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" /> Placing Order...
+                        <Loader2 className="w-4 h-4 animate-spin" /> Sending Order...
                       </span>
                     ) : (
-                      `Place Order (Cash / UPI on Delivery)`
+                      `📲 Send Order via WhatsApp`
                     )}
                   </Button>
 
                   <p className="text-xs text-center text-muted-foreground">
-                    Payment accepted via Cash or UPI upon delivery.
+                    Your order is sent to the restaurant. Payment happens only after owner accepts.
                   </p>
                 </CardContent>
               </Card>

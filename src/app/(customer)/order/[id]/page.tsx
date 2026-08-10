@@ -4,9 +4,10 @@ import { useEffect, useState, use } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/animations/Motion";
-import { CheckCircle2, Clock, MapPin, PhoneCall, AlertTriangle, ArrowLeft } from "lucide-react";
+import { CheckCircle2, Clock, MapPin, PhoneCall, AlertTriangle, ArrowLeft, Bell } from "lucide-react";
 import Link from "next/link";
 import { siteConfig as restaurantDetails } from "@/lib/siteConfig";
+import { requestNotificationPermission, onMessageListener } from "@/lib/notifications/firebase-client";
 
 export default function OrderTrackingPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
@@ -14,6 +15,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
   const [loading, setLoading] = useState(true);
   const [timeoutReached, setTimeoutReached] = useState(false);
   const [modificationTimeout, setModificationTimeout] = useState<number | null>(null);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unknown">("unknown");
   
   const ORDER_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
 
@@ -66,6 +68,56 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
     return () => clearInterval(intervalId);
   }, [unwrappedParams.id]);
 
+  // Register FCM token for customer push notifications
+  useEffect(() => {
+    const registerCustomerPush = async () => {
+      if (typeof window === "undefined" || !("Notification" in window)) return;
+      const currentPermission = Notification.permission;
+      setNotifPermission(currentPermission);
+
+      if (currentPermission === "granted") {
+        try {
+          const token = await requestNotificationPermission();
+          if (token) {
+            // Register this token with the server
+            await fetch("/api/auth/fcm-token", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token }),
+            });
+          }
+        } catch (err) {
+          console.error("Customer FCM registration failed:", err);
+        }
+      }
+    };
+
+    registerCustomerPush();
+  }, []);
+
+  // Listen for foreground messages
+  useEffect(() => {
+    let active = true;
+    const listenForMessages = async () => {
+      try {
+        const payload = await onMessageListener();
+        if (!active) return;
+        // Show an in-app toast for foreground messages
+        if (payload?.notification?.title) {
+          const { title, body } = payload.notification;
+          console.log("[Push]:", title, body);
+          // Could show a toast here but the polling will update status anyway
+        }
+        // Re-listen
+        listenForMessages();
+      } catch (err) {
+        // ignore
+      }
+    };
+    listenForMessages();
+    return () => { active = false; };
+  }, []);
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (modificationTimeout !== null && modificationTimeout > 0 && order?.status === 'MODIFICATION_REQUESTED') {
@@ -99,10 +151,40 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
     <div className="bg-background min-h-screen pt-24 pb-20">
       <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn>
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h1 className="font-serif text-3xl font-bold text-forest mb-2">Order Status</h1>
             <p className="text-muted-foreground">Order ID: #{order.id.substring(0, 8).toUpperCase()}</p>
           </div>
+
+          {/* Enable Notifications Prompt */}
+          {notifPermission === "default" && (
+            <div className="mb-4 flex items-center justify-between gap-3 bg-amber-50 border border-amber-300 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <Bell className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-800">Enable Order Notifications</p>
+                  <p className="text-xs text-amber-700">Get notified when your order is accepted, prepared, or delivered — even when the app is closed.</p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="bg-amber-500 hover:bg-amber-600 text-white shrink-0 h-9 px-3 text-xs"
+                onClick={async () => {
+                  const token = await requestNotificationPermission();
+                  setNotifPermission(Notification.permission);
+                  if (token) {
+                    await fetch("/api/auth/fcm-token", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ token }),
+                    });
+                  }
+                }}
+              >
+                Enable
+              </Button>
+            </div>
+          )}
 
           <Card className="border-border shadow-lg overflow-hidden mb-6">
             <div className={`p-6 text-center ${timeoutReached ? 'bg-red-50' : 'bg-forest text-background'}`}>
@@ -138,11 +220,17 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                       <p className="text-background/80">The restaurant is reviewing your order...</p>
                     </>
                   )}
-                  {order.status === "APPROVED" && (
+                  {(order.status === "APPROVED" || order.status === "PREPARING") && (
                     <>
                       <CheckCircle2 className="h-16 w-16 mx-auto text-green-400" />
-                      <h2 className="text-2xl font-bold font-serif text-green-400">Order Approved!</h2>
-                      <p className="text-background/80">Your food is being prepared.</p>
+                      <h2 className="text-2xl font-bold font-serif text-green-400">
+                        {order.status === "APPROVED" ? "Order Accepted! 🎉" : "Preparing Your Order 👨‍🍳"}
+                      </h2>
+                      <p className="text-background/80">
+                        {order.status === "APPROVED"
+                          ? "Pushya Planet has accepted your order. Cooking will begin shortly!"
+                          : "Your food is being freshly prepared with love!"}
+                      </p>
                     </>
                   )}
                   {order.status === "MODIFICATION_REQUESTED" && (
@@ -185,11 +273,44 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                       </div>
                     </div>
                   )}
+                  {order.status === "READY_FOR_DELIVERY" && (
+                    <>
+                      <CheckCircle2 className="h-16 w-16 mx-auto text-cyan-400" />
+                      <h2 className="text-2xl font-bold font-serif text-cyan-400">Order Ready! 📦</h2>
+                      <p className="text-background/80">Your food is packed and our delivery partner is picking it up!</p>
+                    </>
+                  )}
                   {order.status === "OUT_FOR_DELIVERY" && (
                     <>
                       <MapPin className="h-16 w-16 mx-auto text-blue-400 animate-bounce" />
-                      <h2 className="text-2xl font-bold font-serif text-blue-400">Out for Delivery!</h2>
-                      <p className="text-background/80">Your order is on the way.</p>
+                      <h2 className="text-2xl font-bold font-serif text-blue-400">Out for Delivery! 🛵</h2>
+                      <p className="text-background/80">Your order is on the way. Should be there soon!</p>
+                    </>
+                  )}
+                  {order.status === "DELIVERED" && (
+                    <>
+                      <CheckCircle2 className="h-16 w-16 mx-auto text-green-400" />
+                      <h2 className="text-2xl font-bold font-serif text-green-400">Delivered! 🎉</h2>
+                      <p className="text-background/80">Enjoy your meal! Please rate us on Google Maps.</p>
+                    </>
+                  )}
+                  {(order.status === "CANCELLED_BY_RESTAURANT" || order.status === "CANCELLED") && (
+                    <>
+                      <AlertTriangle className="h-16 w-16 mx-auto text-red-400" />
+                      <h2 className="text-2xl font-bold font-serif text-red-400">Order Cancelled</h2>
+                      <p className="text-background/80">The restaurant had to cancel this order. Please call for details.</p>
+                      <a href={`tel:+91${restaurantDetails.phone}`} className="inline-block">
+                        <Button className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6 h-10 text-sm">
+                          <PhoneCall className="mr-2 h-4 w-4" /> {restaurantDetails.phone}
+                        </Button>
+                      </a>
+                    </>
+                  )}
+                  {order.status === "CANCELLED_BY_CUSTOMER" && (
+                    <>
+                      <AlertTriangle className="h-16 w-16 mx-auto text-red-400" />
+                      <h2 className="text-2xl font-bold font-serif text-red-400">Order Cancelled</h2>
+                      <p className="text-background/80">You cancelled this order.</p>
                     </>
                   )}
                 </div>
