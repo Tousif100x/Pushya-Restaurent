@@ -4,7 +4,7 @@ import { NotificationProvider, PushNotificationPayload } from './types';
 
 let initialized = false;
 
-const FALLBACK_PROJECT_ID = "pushya-restaurant";
+const FALLBACK_PROJECT_ID = "pushya-restaurent";
 const FALLBACK_CLIENT_EMAIL = "firebase-adminsdk-fbsvc@pushya-restaurent.iam.gserviceaccount.com";
 const FALLBACK_PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
 MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDD1NYHM119keUA

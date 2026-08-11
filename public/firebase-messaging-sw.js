@@ -4,9 +4,9 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-com
 // Synchronous Firebase initialization for service worker
 const firebaseConfig = {
   apiKey: "AIzaSyBcEXNEVL_H1u5jeb72hw9hL_n00J24pC0",
-  authDomain: "pushya-restaurant.firebaseapp.com",
-  projectId: "pushya-restaurant",
-  storageBucket: "pushya-restaurant.appspot.com",
+  authDomain: "pushya-restaurent.firebaseapp.com",
+  projectId: "pushya-restaurent",
+  storageBucket: "pushya-restaurent.firebasestorage.app",
   messagingSenderId: "212682055583",
   appId: "1:212682055583:web:27a63e16cd8157880ae7aa",
 };
