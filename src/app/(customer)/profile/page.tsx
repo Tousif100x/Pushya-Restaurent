@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, MapPin, Package, User as UserIcon, Check, Lock, Shield, Info, RefreshCw } from "lucide-react";
+import { LogOut, MapPin, Package, User as UserIcon, Check, Lock, Shield, Info, RefreshCw, Bell, BellOff } from "lucide-react";
+import { requestNotificationPermission } from "@/lib/notifications/firebase-client";
 import { FadeIn, SlideUp } from "@/components/animations/Motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -34,6 +35,18 @@ export default function ProfilePage() {
     title: "",
     content: "",
   });
+
+  // Notification permission state
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported" | "unknown">("unknown");
+  const [registeringNotif, setRegisteringNotif] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotifPermission(Notification.permission);
+    } else {
+      setNotifPermission("unsupported");
+    }
+  }, []);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -200,6 +213,79 @@ export default function ProfilePage() {
                     <span>Password</span>
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          </SlideUp>
+
+          {/* Notifications Card */}
+          <SlideUp delay={0.15}>
+            <Card className="border-gold/20 shadow-xs">
+              <CardHeader className="bg-forest/5 pb-3 px-4">
+                <CardTitle className="text-forest flex items-center gap-2 text-base font-serif">
+                  <Bell className="w-4 h-4 text-gold" /> Order Notifications
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4 px-4 pb-4 space-y-3 text-sm">
+                {notifPermission === "granted" && (
+                  <div className="flex items-start gap-3 bg-green-50 border border-green-200 rounded-lg p-3">
+                    <Bell className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-semibold text-green-700">Notifications Enabled ✅</p>
+                      <p className="text-xs text-green-600 mt-0.5">You'll receive alerts when your order is accepted, prepared, or delivered.</p>
+                    </div>
+                  </div>
+                )}
+
+                {notifPermission === "default" && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Enable notifications to get order updates even when the app is closed.</p>
+                    <Button
+                      className="w-full bg-forest hover:bg-forest/90 text-white h-9 text-xs gap-2"
+                      disabled={registeringNotif}
+                      onClick={async () => {
+                        setRegisteringNotif(true);
+                        try {
+                          const token = await requestNotificationPermission();
+                          setNotifPermission(Notification.permission);
+                          if (token) {
+                            await fetch("/api/auth/fcm-token", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ token }),
+                            });
+                            toast.success("Notifications enabled! You'll now get order updates.");
+                          } else {
+                            toast.error("Could not enable — please allow in browser settings.");
+                          }
+                        } finally {
+                          setRegisteringNotif(false);
+                        }
+                      }}
+                    >
+                      <Bell className="w-3.5 h-3.5" />
+                      {registeringNotif ? "Enabling..." : "Enable Order Notifications"}
+                    </Button>
+                  </div>
+                )}
+
+                {notifPermission === "denied" && (
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3">
+                      <BellOff className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-xs font-semibold text-red-700">Notifications Blocked</p>
+                        <p className="text-xs text-red-600 mt-0.5">You blocked notifications. To re-enable:</p>
+                        <p className="text-xs text-red-600 mt-1">📱 <strong>Android:</strong> Chrome menu → Site settings → Notifications → Allow</p>
+                        <p className="text-xs text-red-600">🍎 <strong>iPhone:</strong> Settings → Safari → This site → Allow Notifications</p>
+                        <p className="text-xs text-red-500 font-semibold mt-1">Then reload the app.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {notifPermission === "unsupported" && (
+                  <p className="text-xs text-muted-foreground">Push notifications are not supported on this browser.</p>
+                )}
               </CardContent>
             </Card>
           </SlideUp>

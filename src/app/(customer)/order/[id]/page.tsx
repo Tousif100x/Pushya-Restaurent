@@ -156,14 +156,66 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
             <p className="text-muted-foreground">Order ID: #{order.id.substring(0, 8).toUpperCase()}</p>
           </div>
 
-          {/* Enable Notifications Prompt */}
-          {notifPermission === "default" && (
+          {/* ── Notification Banner: 3 states ── */}
+
+          {/* STATE 1: Order is PENDING and notifications are OFF — RED urgent warning */}
+          {order.status === "PENDING" && (notifPermission === "default" || notifPermission === "denied") && (
+            <div className="mb-4 rounded-xl border-2 border-red-400 bg-red-50 p-4">
+              <div className="flex items-start gap-3">
+                <Bell className="h-5 w-5 text-red-500 mt-0.5 shrink-0 animate-bounce" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-red-700">
+                    ⚠️ You won't be notified when your order is accepted!
+                  </p>
+                  <p className="text-xs text-red-600 mt-1">
+                    Your order is waiting for the restaurant to accept.{" "}
+                    {notifPermission === "denied"
+                      ? "You've blocked notifications. Without them, you must keep this page open to see updates."
+                      : "Enable notifications so we can alert you when it's accepted — even if you close this page."}
+                  </p>
+                  {notifPermission === "denied" ? (
+                    <div className="mt-3 bg-red-100 rounded-lg p-3 text-xs text-red-700 space-y-1">
+                      <p className="font-semibold">How to re-enable (takes 10 seconds):</p>
+                      <p>📱 <strong>Android Chrome:</strong> Tap ⋮ menu → Site settings → Notifications → Allow</p>
+                      <p>🍎 <strong>iPhone Safari:</strong> Settings → Safari → Notifications → Allow for this site</p>
+                      <p className="text-red-500 font-medium mt-2">After allowing, reload this page.</p>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      className="mt-3 bg-red-600 hover:bg-red-700 text-white h-9 px-4 text-xs font-semibold"
+                      onClick={async () => {
+                        const token = await requestNotificationPermission();
+                        setNotifPermission(Notification.permission);
+                        if (token) {
+                          await fetch("/api/auth/fcm-token", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ token }),
+                          });
+                        }
+                      }}
+                    >
+                      🔔 Enable Notifications Now
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STATE 2: Order is NOT pending and notifications still off — softer amber reminder */}
+          {order.status !== "PENDING" && order.status !== "DELIVERED" &&
+           order.status !== "CANCELLED_BY_RESTAURANT" && order.status !== "CANCELLED_BY_CUSTOMER" &&
+           order.status !== "CANCELLED" && notifPermission === "default" && (
             <div className="mb-4 flex items-center justify-between gap-3 bg-amber-50 border border-amber-300 rounded-xl p-4">
               <div className="flex items-start gap-3">
                 <Bell className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-amber-800">Enable Order Notifications</p>
-                  <p className="text-xs text-amber-700">Get notified when your order is accepted, prepared, or delivered — even when the app is closed.</p>
+                  <p className="text-xs text-amber-700">
+                    Get notified when your order is prepared or out for delivery — even when you close this page.
+                  </p>
                 </div>
               </div>
               <Button
@@ -185,6 +237,17 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
               </Button>
             </div>
           )}
+
+          {/* STATE 3: Notifications denied after order is no longer pending — show instructions quietly */}
+          {order.status !== "PENDING" && order.status !== "DELIVERED" &&
+           order.status !== "CANCELLED_BY_RESTAURANT" && order.status !== "CANCELLED_BY_CUSTOMER" &&
+           order.status !== "CANCELLED" && notifPermission === "denied" && (
+            <div className="mb-4 bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-500">
+              <Bell className="h-4 w-4 inline mr-1 text-gray-400" />
+              Notifications blocked. To re-enable: Chrome menu → Site settings → Notifications → Allow.
+            </div>
+          )}
+
 
           <Card className="border-border shadow-lg overflow-hidden mb-6">
             <div className={`p-6 text-center ${timeoutReached ? 'bg-red-50' : 'bg-forest text-background'}`}>
