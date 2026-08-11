@@ -108,9 +108,23 @@ export function AdminOrderCard({
   } else if (order.status === "APPROVED") {
     rawWhatsappMsg = `Hello ${order.customerName}, your order #${orderNum} has been ACCEPTED! Cooking has started. Track live: ${trackingUrl}`;
   } else if (order.status === "MODIFICATION_REQUESTED") {
-    rawWhatsappMsg = `Hello ${order.customerName}, regarding order #${orderNum}: Some items are out of stock. Please tap here to select replacements: ${trackingUrl}`;
+    const unavailItems = order.items.filter((i: any) => i.status === "UNAVAILABLE");
+    const modLines = unavailItems.length > 0
+      ? unavailItems
+          .map(
+            (i: any) =>
+              `• ${i.quantity}x ${i.itemName}` +
+              (i.replacedWith ? ` (Suggested replacement: ${i.replacedWith})` : ` (Out of stock)`)
+          )
+          .join("\n")
+      : "• Item modification requested by restaurant";
+
+    rawWhatsappMsg =
+      `Hello ${order.customerName}, regarding your order #${orderNum}:\n\n` +
+      `⚠️ The following item(s) are currently unavailable:\n${modLines}\n\n` +
+      `Please tap here to review and accept/decline the changes:\n${trackingUrl}`;
   } else if (order.status === "OUT_FOR_DELIVERY") {
-    rawWhatsappMsg = `Hello ${order.customerName}, your order #${orderNum} is OUT FOR DELIVERY! Track driver live: ${trackingUrl}`;
+    rawWhatsappMsg = `Hello ${order.customerName}, your order #${orderNum} is OUT FOR DELIVERY! Our driver is on the way. Track live: ${trackingUrl}`;
   } else if (order.status === "DELIVERED") {
     rawWhatsappMsg = `Hello ${order.customerName}, your order #${orderNum} was DELIVERED! Thank you for ordering from Pushya Restaurent.`;
   }

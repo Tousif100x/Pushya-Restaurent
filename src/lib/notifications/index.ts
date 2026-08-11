@@ -1,5 +1,10 @@
-import { TelegramNotificationProvider } from './telegram-provider';
-import { NotificationProvider } from './types';
+import { NotificationProvider, PushNotificationPayload } from "./types";
 
-export const notificationProvider = new TelegramNotificationProvider();
-export { TelegramNotificationProvider };
+class NoOpNotificationProvider implements NotificationProvider {
+  initBackend() {}
+  async sendToTokens(): Promise<boolean> {
+    return true;
+  }
+}
+
+export const notificationProvider: NotificationProvider = new NoOpNotificationProvider();
