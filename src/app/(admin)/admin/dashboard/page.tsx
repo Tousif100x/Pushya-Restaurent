@@ -8,7 +8,7 @@ import { StaggerContainer, StaggerItem } from "@/components/animations/Motion";
 import { Activity, DollarSign, Package, ShoppingCart, Clock, RefreshCw, Bell, BellOff, Send, CheckCircle2, ShieldAlert } from "lucide-react";
 import { AdminOrderCard } from "./OrderCard";
 import { OrderAlarmSystem } from "@/components/admin/OrderAlarmSystem";
-import { requestNotificationPermission } from "@/lib/notifications/firebase-client";
+import { requestNotificationPermission, requestNotificationPermissionDetailed } from "@/lib/notifications/firebase-client";
 import { toast } from "sonner";
 
 export default function AdminDashboard() {
@@ -32,12 +32,12 @@ export default function AdminDashboard() {
 
     if (perm === "granted") {
       try {
-        const token = await requestNotificationPermission();
-        if (token) {
+        const res = await requestNotificationPermissionDetailed();
+        if (res.token) {
           await fetch("/api/admin/device", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token }),
+            body: JSON.stringify({ token: res.token }),
           });
         }
       } catch (err) {
@@ -53,20 +53,20 @@ export default function AdminDashboard() {
   const handleEnablePush = async () => {
     setIsRegistering(true);
     try {
-      const token = await requestNotificationPermission();
+      const res = await requestNotificationPermissionDetailed();
       setNotifState(Notification.permission);
-      if (token) {
+      if (res.token) {
         await fetch("/api/admin/device", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({ token: res.token }),
         });
         toast.success("Background notifications enabled for Admin device!");
       } else {
-        toast.error("Could not get notification permission. Please check browser settings.");
+        toast.error(`Notification Error: ${res.error || "Permission not granted"}`);
       }
-    } catch {
-      toast.error("Failed to enable push notifications.");
+    } catch (e: any) {
+      toast.error(`Failed to enable push: ${e?.message || e}`);
     } finally {
       setIsRegistering(false);
     }
@@ -75,16 +75,16 @@ export default function AdminDashboard() {
   const handleTestPush = async () => {
     setIsTestingPush(true);
     try {
-      // 1. Force obtain and register device FCM token first
-      const token = await requestNotificationPermission();
-      if (token) {
+      // 1. Force obtain and register device FCM token first with 3-tier fallback
+      const resToken = await requestNotificationPermissionDetailed();
+      if (resToken.token) {
         await fetch("/api/admin/device", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({ token: resToken.token }),
         });
       } else {
-        toast.error("Could not get FCM token from Firebase. Check browser permissions.");
+        toast.error(`FCM Token Error: ${resToken.error || "Token generation failed"}`);
         setIsTestingPush(false);
         return;
       }
@@ -97,8 +97,8 @@ export default function AdminDashboard() {
       } else {
         toast.error(`Push failed: ${data.error || data.message || "Unknown error"}`);
       }
-    } catch {
-      toast.error("Network error sending test push.");
+    } catch (e: any) {
+      toast.error(`Network error sending test push: ${e?.message || e}`);
     } finally {
       setIsTestingPush(false);
     }

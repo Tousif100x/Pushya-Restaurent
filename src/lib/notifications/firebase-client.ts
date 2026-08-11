@@ -19,64 +19,89 @@ export const initializeFirebaseClient = () => {
 };
 
 /**
- * Requests notification permission and returns the FCM token.
- * Registers /firebase-messaging-sw.js and gets the FCM token.
+ * Detailed FCM token acquisition with 3-tiered fallback & explicit error reporting.
  */
-export const requestNotificationPermission = async (): Promise<string | null> => {
+export const requestNotificationPermissionDetailed = async (): Promise<{ token?: string; error?: string }> => {
   try {
     if (typeof window === "undefined" || !("Notification" in window)) {
-      console.warn("[Firebase] Notifications not supported in this browser.");
-      return null;
+      return { error: "Notifications not supported in this browser" };
     }
 
     if (!("serviceWorker" in navigator)) {
-      console.warn("[Firebase] Service Workers not supported.");
-      return null;
+      return { error: "Service Workers not supported in this browser" };
     }
 
     // Request permission
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
-      console.warn("[Firebase] Notification permission not granted. Status:", permission);
-      return null;
+      return { error: `Permission status: ${permission}` };
     }
 
     const app = initializeFirebaseClient();
-    if (!app) return null;
+    if (!app) return { error: "Failed to initialize Firebase Client" };
 
     const messaging = getMessaging(app);
-
-    let swRegistration: ServiceWorkerRegistration | undefined;
-    try {
-      swRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-    } catch (e) {
-      console.warn("[Firebase] Direct /firebase-messaging-sw.js registration failed:", e);
-      swRegistration = await navigator.serviceWorker.ready.catch(() => undefined);
-    }
-
     const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || FALLBACK_VAPID_KEY;
 
-    const token = await getToken(messaging, {
-      vapidKey,
-      serviceWorkerRegistration: swRegistration,
-    });
+    let token: string | null = null;
+    let lastError = "";
 
-    if (token) {
-      console.log("[Firebase] FCM token obtained successfully:", token.substring(0, 20) + "...");
-    } else {
-      console.warn("[Firebase] No FCM token returned by Firebase.");
+    // Method 1: Try with active PWA ready registration
+    try {
+      const readyRegistration = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise<undefined>((res) => setTimeout(res, 1500)),
+      ]);
+      if (readyRegistration) {
+        token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: readyRegistration });
+      }
+    } catch (e: any) {
+      lastError = e?.message || String(e);
+      console.warn("[Firebase] Method 1 failed:", lastError);
     }
 
-    return token || null;
+    // Method 2: Try registering /firebase-messaging-sw.js explicitly
+    if (!token) {
+      try {
+        const swReg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+        token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: swReg });
+      } catch (e: any) {
+        lastError = e?.message || String(e);
+        console.warn("[Firebase] Method 2 failed:", lastError);
+      }
+    }
+
+    // Method 3: Try standard getToken without explicit SW registration parameter
+    if (!token) {
+      try {
+        token = await getToken(messaging, { vapidKey });
+      } catch (e: any) {
+        lastError = e?.message || String(e);
+        console.warn("[Firebase] Method 3 failed:", lastError);
+      }
+    }
+
+    if (token) {
+      console.log("[Firebase] Token obtained successfully:", token.substring(0, 20) + "...");
+      return { token };
+    }
+
+    return { error: lastError || "No FCM token returned from Firebase" };
   } catch (error: any) {
-    console.error("[Firebase] Error in requestNotificationPermission:", error);
-    return null;
+    return { error: error?.message || "Unknown error requesting notification permission" };
   }
 };
 
 /**
+ * Backwards compatible helper
+ */
+export const requestNotificationPermission = async (): Promise<string | null> => {
+  const res = await requestNotificationPermissionDetailed();
+  return res.token || null;
+};
+
+/**
  * Listens for foreground messages (app is open/focused).
- * Returns a promise that resolves with the next message payload.
  */
 export const onMessageListener = (): Promise<MessagePayload> => {
   return new Promise((resolve) => {
