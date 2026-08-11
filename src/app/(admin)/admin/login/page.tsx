@@ -27,6 +27,41 @@ export default function AdminLogin() {
       .catch(() => {});
   }, [router]);
 
+  // Reset password states
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [resetSuccess, setResetSuccess] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setResetError("");
+    setResetSuccess("");
+
+    try {
+      const res = await fetch("/api/admin/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail, newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResetSuccess(data.message || "Password updated successfully!");
+        setResetEmail("");
+        setNewPassword("");
+      } else {
+        setResetError(data.error || "Failed to reset password.");
+      }
+    } catch {
+      setResetError("Network error. Please try again.");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -110,19 +145,26 @@ export default function AdminLogin() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-white/70">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="pl-10 bg-white/8 border-white/15 text-white placeholder:text-white/25 focus:border-[#D9A441]/50 focus:ring-[#D9A441]/20 h-11"
-                    required
-                  />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowResetModal(true)}
+                  className="text-xs text-[#D9A441] hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pl-10 bg-white/8 border-white/15 text-white placeholder:text-white/25 focus:border-[#D9A441]/50 focus:ring-[#D9A441]/20 h-11"
+                  required
+                />
               </div>
 
               <Button
@@ -146,6 +188,78 @@ export default function AdminLogin() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Admin Reset Password Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+          <Card className="w-full max-w-sm bg-[#10261B] border-white/15 text-white shadow-2xl">
+            <CardContent className="pt-6 pb-6 px-6 space-y-4">
+              <h3 className="text-lg font-bold text-center">Reset Admin Password</h3>
+              {resetSuccess ? (
+                <div className="space-y-3 text-center">
+                  <p className="text-emerald-400 text-sm font-semibold">✅ {resetSuccess}</p>
+                  <Button
+                    onClick={() => {
+                      setShowResetModal(false);
+                      setResetSuccess("");
+                    }}
+                    className="w-full bg-[#D9A441] text-black font-bold h-10"
+                  >
+                    Back to Login
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleResetSubmit} className="space-y-3">
+                  {resetError && (
+                    <p className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded p-2 text-center">
+                      {resetError}
+                    </p>
+                  )}
+                  <div className="space-y-1">
+                    <label className="text-xs text-white/70">Admin Email</label>
+                    <Input
+                      type="email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      placeholder="admin@pushya.com"
+                      className="bg-white/10 border-white/20 text-white h-9 text-xs"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-white/70">New Password</label>
+                    <Input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Min. 6 characters"
+                      className="bg-white/10 border-white/20 text-white h-9 text-xs"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowResetModal(false)}
+                      className="w-1/2 border-white/20 text-white hover:bg-white/10 h-9 text-xs"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={resetLoading}
+                      className="w-1/2 bg-[#D9A441] hover:bg-[#D9A441]/90 text-black font-bold h-9 text-xs"
+                    >
+                      {resetLoading ? "Updating..." : "Set Password"}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

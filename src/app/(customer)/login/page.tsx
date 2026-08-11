@@ -19,6 +19,50 @@ export default function LoginPage() {
   const router = useRouter();
   const { checkAuth } = useAuthStore();
 
+  // Reset password states
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetPhone, setResetPhone] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [resetSuccess, setResetSuccess] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (resetPhone.length < 10) {
+      setResetError("Enter a valid 10-digit mobile number");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setResetError("Password must be at least 6 characters");
+      return;
+    }
+
+    setResetLoading(true);
+    setResetError("");
+    setResetSuccess("");
+
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: resetPhone, newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResetSuccess(data.message || "Password updated successfully!");
+        setResetPhone("");
+        setNewPassword("");
+      } else {
+        setResetError(data.error || "Failed to reset password.");
+      }
+    } catch {
+      setResetError("Network error. Please try again.");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (phone.length < 10) {
@@ -95,7 +139,16 @@ export default function LoginPage() {
 
               {/* Password */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-forest">Password</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-forest">Password</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowResetModal(true)}
+                    className="text-xs text-gold hover:underline font-medium"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-forest/40" />
                   <input
@@ -133,6 +186,78 @@ export default function LoginPage() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Customer Reset Password Modal */}
+        {showResetModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <Card className="w-full max-w-sm border-gold/30 shadow-2xl">
+              <CardContent className="pt-6 pb-6 px-6 space-y-4">
+                <h3 className="text-lg font-bold text-forest text-center">Reset Password</h3>
+                {resetSuccess ? (
+                  <div className="space-y-3 text-center">
+                    <p className="text-green-600 text-sm font-semibold">✅ {resetSuccess}</p>
+                    <Button
+                      onClick={() => {
+                        setShowResetModal(false);
+                        setResetSuccess("");
+                      }}
+                      className="w-full bg-forest hover:bg-forest/90 text-white font-bold h-10"
+                    >
+                      Sign In Now
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleResetSubmit} className="space-y-3">
+                    {resetError && (
+                      <p className="text-red-600 text-xs bg-red-50 border border-red-200 rounded p-2 text-center">
+                        {resetError}
+                      </p>
+                    )}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-forest">Mobile Number</label>
+                      <input
+                        type="tel"
+                        value={resetPhone}
+                        onChange={(e) => setResetPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                        placeholder="10-digit mobile number"
+                        className="w-full px-3 py-2 rounded-md border border-forest/20 text-xs"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-forest">New Password</label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Min. 6 characters"
+                        className="w-full px-3 py-2 rounded-md border border-forest/20 text-xs"
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowResetModal(false)}
+                        className="w-1/2 border-gray-300 text-gray-700 h-9 text-xs"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={resetLoading}
+                        className="w-1/2 bg-forest hover:bg-forest/90 text-white font-bold h-9 text-xs"
+                      >
+                        {resetLoading ? "Updating..." : "Reset Password"}
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </FadeIn>
     </div>
   );
