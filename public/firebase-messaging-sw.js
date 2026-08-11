@@ -24,7 +24,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Native push handler guarantees 100% notification display on locked phone screen & closed app
+// Native push handler — displays notification on locked phone screen & closed app
 self.addEventListener('push', function(event) {
   console.log('[firebase-messaging-sw.js] Native push event received:', event);
 
@@ -32,30 +32,39 @@ self.addEventListener('push', function(event) {
   let body = 'You have a new order pending. Tap to view.';
   let url = '/admin/dashboard';
   let orderId = '';
+  let type = 'new_order'; // new_order | pending_reminder | order_update
 
   if (event.data) {
     try {
       const payload = event.data.json();
       title = payload.notification?.title || payload.data?.title || payload.title || title;
-      body = payload.notification?.body || payload.data?.body || payload.body || body;
-      url = payload.data?.url || payload.url || url;
+      body  = payload.notification?.body  || payload.data?.body  || payload.body  || body;
+      url   = payload.data?.url  || payload.url  || url;
       orderId = payload.data?.orderId || '';
+      type  = payload.data?.type || type;
     } catch (e) {
       body = event.data.text() || body;
     }
   }
 
+  // Use a stable tag for reminders so they REPLACE the previous notification
+  // (no spam of 10 notifications stacking up)
+  const tag = type === 'pending_reminder'
+    ? 'pending-order-reminder'
+    : (orderId || 'order-' + Date.now());
+
   const options = {
     body: body,
-    icon: '/icon512_maskable.png',
-    badge: '/icon512_maskable.png',
-    tag: orderId || 'new-order-' + Date.now(),
-    renotify: true,
-    requireInteraction: true,
+    icon: '/app-icon-192.png',
+    badge: '/app-icon-192.png',
+    tag: tag,
+    renotify: true,          // re-notify even if same tag (makes phone buzz again)
+    requireInteraction: true, // stays on screen until dismissed
     vibrate: [500, 200, 500, 200, 1000],
-    data: { url: url, orderId: orderId },
+    silent: false,
+    data: { url: url, orderId: orderId, type: type },
     actions: [
-      { action: 'view', title: '👀 View Order' },
+      { action: 'view',    title: '👀 Open Dashboard' },
       { action: 'dismiss', title: '✕ Dismiss' }
     ]
   };
@@ -73,11 +82,13 @@ self.addEventListener('notificationclick', function(event) {
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(windowClients) {
+      // Focus existing admin tab if already open
       for (const client of windowClients) {
         if (client.url.includes('/admin') && 'focus' in client) {
           return client.focus();
         }
       }
+      // Otherwise open a new window
       return clients.openWindow(url);
     })
   );
