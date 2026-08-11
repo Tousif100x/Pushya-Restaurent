@@ -24,7 +24,7 @@ export const initializeFirebaseClient = () => {
 
 /**
  * Requests notification permission and returns the FCM token.
- * Registers the firebase-messaging-sw.js service worker (clean URL, no params).
+ * Uses navigator.serviceWorker.ready or registers /firebase-messaging-sw.js.
  */
 export const requestNotificationPermission = async (): Promise<string | null> => {
   try {
@@ -41,7 +41,7 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
     // Request permission
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
-      console.warn("[Firebase] Notification permission denied.");
+      console.warn("[Firebase] Notification permission not granted. Status:", permission);
       return null;
     }
 
@@ -50,52 +50,44 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
 
     const messaging = getMessaging(app);
 
-    // Register the SW cleanly — no config in the URL
-    // The SW fetches its config from /api/firebase-config on install
-    let swRegistration = await navigator.serviceWorker.getRegistration(
-      "/firebase-messaging-sw.js"
-    );
-
-    if (!swRegistration) {
-      console.log("[Firebase] Registering service worker...");
-      swRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-        scope: "/",
-      });
-      // Wait for it to be active
-      await new Promise<void>((resolve) => {
-        if (swRegistration!.active) {
-          resolve();
-          return;
-        }
-        const onStateChange = () => {
-          if (swRegistration!.installing?.state === "activated" || swRegistration!.active) {
-            resolve();
-          }
-        };
-        swRegistration!.addEventListener("updatefound", onStateChange);
-        swRegistration!.installing?.addEventListener("statechange", onStateChange);
-        // Fallback after 3s
-        setTimeout(resolve, 3000);
-      });
+    let swRegistration: ServiceWorkerRegistration | null = null;
+    try {
+      // First try active service worker from next-pwa
+      const readyRegistration = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise<undefined>((res) => setTimeout(res, 2000)),
+      ]);
+      if (readyRegistration) {
+        swRegistration = readyRegistration;
+      }
+    } catch (swErr) {
+      console.warn("[Firebase] navigator.serviceWorker.ready timed out or failed:", swErr);
     }
 
-    console.log("[Firebase] Service worker registered:", swRegistration.scope);
+    if (!swRegistration) {
+      try {
+        console.log("[Firebase] Registering fallback /firebase-messaging-sw.js...");
+        swRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+      } catch (regErr) {
+        console.error("[Firebase] Service worker registration failed:", regErr);
+      }
+    }
 
     const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
     if (!vapidKey) {
-      console.warn("[Firebase] NEXT_PUBLIC_FIREBASE_VAPID_KEY not set. Cannot get FCM token.");
+      console.warn("[Firebase] NEXT_PUBLIC_FIREBASE_VAPID_KEY missing.");
       return null;
     }
 
     const token = await getToken(messaging, {
       vapidKey,
-      serviceWorkerRegistration: swRegistration,
+      serviceWorkerRegistration: swRegistration || undefined,
     });
 
     if (token) {
       console.log("[Firebase] FCM token obtained successfully:", token.substring(0, 20) + "...");
     } else {
-      console.warn("[Firebase] No FCM token returned. Check VAPID key and browser support.");
+      console.warn("[Firebase] No FCM token returned by Firebase.");
     }
 
     return token || null;
@@ -115,7 +107,7 @@ export const onMessageListener = (): Promise<MessagePayload> => {
     if (!app) return;
     const messaging = getMessaging(app);
     const unsubscribe = onMessage(messaging, (payload) => {
-      unsubscribe(); // Unsubscribe after first message so we can re-listen
+      unsubscribe();
       resolve(payload);
     });
   });

@@ -11,6 +11,7 @@ self.addEventListener('push', function(event: any) {
   let body = 'You have a new order pending. Tap to view.';
   let url = '/admin/dashboard';
   let orderId = '';
+  let type = 'new_order';
 
   if (event.data) {
     try {
@@ -19,20 +20,25 @@ self.addEventListener('push', function(event: any) {
       body = payload.notification?.body || payload.data?.body || payload.body || body;
       url = payload.data?.url || payload.url || url;
       orderId = payload.data?.orderId || '';
+      type = payload.data?.type || type;
     } catch (e) {
       body = event.data.text() || body;
     }
   }
 
+  const tag = type === 'pending_reminder'
+    ? 'pending-order-reminder'
+    : (orderId || 'order-' + Date.now());
+
   const options = {
     body: body,
-    icon: '/icon512_maskable.png',
-    badge: '/icon512_maskable.png',
-    tag: orderId || 'new-order-' + Date.now(),
+    icon: '/app-icon-192.png',
+    badge: '/app-icon-192.png',
+    tag: tag,
     renotify: true,
     requireInteraction: true,
     vibrate: [500, 200, 500, 200, 1000],
-    data: { url: url, orderId: orderId },
+    data: { url: url, orderId: orderId, type: type },
     actions: [
       { action: 'view', title: '👀 View Order' },
       { action: 'dismiss', title: '✕ Dismiss' }
