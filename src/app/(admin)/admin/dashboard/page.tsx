@@ -75,10 +75,25 @@ export default function AdminDashboard() {
   const handleTestPush = async () => {
     setIsTestingPush(true);
     try {
+      // 1. Force obtain and register device FCM token first
+      const token = await requestNotificationPermission();
+      if (token) {
+        await fetch("/api/admin/device", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+      } else {
+        toast.error("Could not get FCM token from Firebase. Check browser permissions.");
+        setIsTestingPush(false);
+        return;
+      }
+
+      // 2. Send test push notification
       const res = await fetch("/api/admin/firebase-status", { method: "POST" });
       const data = await res.json();
       if (data.success) {
-        toast.success("🧪 Test push notification sent! Lock your screen or check notifications now.");
+        toast.success("🧪 Test push notification sent! Check your notification bar or lock screen now.");
       } else {
         toast.error(`Push failed: ${data.error || data.message || "Unknown error"}`);
       }

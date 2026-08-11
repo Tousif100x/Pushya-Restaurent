@@ -24,7 +24,7 @@ export const initializeFirebaseClient = () => {
 
 /**
  * Requests notification permission and returns the FCM token.
- * Uses navigator.serviceWorker.ready or registers /firebase-messaging-sw.js.
+ * Registers /firebase-messaging-sw.js and gets the FCM token.
  */
 export const requestNotificationPermission = async (): Promise<string | null> => {
   try {
@@ -50,27 +50,12 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
 
     const messaging = getMessaging(app);
 
-    let swRegistration: ServiceWorkerRegistration | null = null;
+    let swRegistration: ServiceWorkerRegistration | undefined;
     try {
-      // First try active service worker from next-pwa
-      const readyRegistration = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise<undefined>((res) => setTimeout(res, 2000)),
-      ]);
-      if (readyRegistration) {
-        swRegistration = readyRegistration;
-      }
-    } catch (swErr) {
-      console.warn("[Firebase] navigator.serviceWorker.ready timed out or failed:", swErr);
-    }
-
-    if (!swRegistration) {
-      try {
-        console.log("[Firebase] Registering fallback /firebase-messaging-sw.js...");
-        swRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-      } catch (regErr) {
-        console.error("[Firebase] Service worker registration failed:", regErr);
-      }
+      swRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    } catch (e) {
+      console.warn("[Firebase] Direct /firebase-messaging-sw.js registration failed:", e);
+      swRegistration = await navigator.serviceWorker.ready.catch(() => undefined);
     }
 
     const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
@@ -81,7 +66,7 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
 
     const token = await getToken(messaging, {
       vapidKey,
-      serviceWorkerRegistration: swRegistration || undefined,
+      serviceWorkerRegistration: swRegistration,
     });
 
     if (token) {
@@ -91,7 +76,7 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
     }
 
     return token || null;
-  } catch (error) {
+  } catch (error: any) {
     console.error("[Firebase] Error in requestNotificationPermission:", error);
     return null;
   }

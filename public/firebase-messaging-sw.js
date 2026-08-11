@@ -1,23 +1,24 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-let firebaseConfig = null;
+// Synchronous Firebase initialization for service worker
+const firebaseConfig = {
+  apiKey: "AIzaSyBcEXNEVL_H1u5jeb72hw9hL_n00J24pC0",
+  authDomain: "pushya-restaurant.firebaseapp.com",
+  projectId: "pushya-restaurant",
+  storageBucket: "pushya-restaurant.appspot.com",
+  messagingSenderId: "212682055583",
+  appId: "1:212682055583:web:27a63e16cd8157880ae7aa",
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const messaging = firebase.messaging();
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  event.waitUntil(
-    fetch('/api/firebase-config')
-      .then(r => r.json())
-      .then(config => {
-        if (config && config.apiKey) {
-          firebaseConfig = config;
-          if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-          }
-        }
-      })
-      .catch(err => console.warn('[firebase-messaging-sw.js] Could not fetch config:', err))
-  );
 });
 
 self.addEventListener('activate', (event) => {
@@ -48,7 +49,6 @@ self.addEventListener('push', function(event) {
   }
 
   // Use a stable tag for reminders so they REPLACE the previous notification
-  // (no spam of 10 notifications stacking up)
   const tag = type === 'pending_reminder'
     ? 'pending-order-reminder'
     : (orderId || 'order-' + Date.now());
