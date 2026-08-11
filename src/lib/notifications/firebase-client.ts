@@ -1,22 +1,18 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getMessaging, getToken, onMessage, MessagePayload } from "firebase/messaging";
 
+const FALLBACK_VAPID_KEY = "BJGRbgixjv-ycj_9Ti92D5cddq72v0XRpsiHOxDQHq_2t9in15dy6oiI393fxsdFQPTlgwSXCr1VtIoQMq5aWec";
+
 export const initializeFirebaseClient = () => {
   if (typeof window === "undefined") return null;
 
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-  if (!apiKey) {
-    console.warn("[Firebase] NEXT_PUBLIC_FIREBASE_API_KEY not set. Push notifications disabled.");
-    return null;
-  }
-
   const firebaseConfig = {
-    apiKey,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyBcEXNEVL_H1u5jeb72hw9hL_n00J24pC0",
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "pushya-restaurant.firebaseapp.com",
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "pushya-restaurant",
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "pushya-restaurant.appspot.com",
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "212682055583",
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:212682055583:web:27a63e16cd8157880ae7aa",
   };
 
   return getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
@@ -58,11 +54,7 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
       swRegistration = await navigator.serviceWorker.ready.catch(() => undefined);
     }
 
-    const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-    if (!vapidKey) {
-      console.warn("[Firebase] NEXT_PUBLIC_FIREBASE_VAPID_KEY missing.");
-      return null;
-    }
+    const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || FALLBACK_VAPID_KEY;
 
     const token = await getToken(messaging, {
       vapidKey,
