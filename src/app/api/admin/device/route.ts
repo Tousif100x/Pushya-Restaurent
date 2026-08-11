@@ -1,7 +1,5 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
@@ -9,32 +7,29 @@ export async function POST(request: Request) {
     const { token } = body;
 
     if (!token) {
-      return NextResponse.json({ error: 'Token is required' }, { status: 400 });
+      return NextResponse.json({ error: "Token is required" }, { status: 400 });
     }
 
-    // Since we only have a default admin for now, we'll find the first admin and add the token.
-    // In a real scenario, this would check session/JWT for the specific admin ID.
-    const admin = await prisma.admin.findFirst();
-    
-    if (admin) {
-      // Check if token already exists to avoid duplicates
-      if (!admin.fcmTokens.includes(token)) {
-        await prisma.admin.update({
-          where: { id: admin.id },
-          data: {
-            fcmTokens: {
-              push: token
-            }
-          }
-        });
+    // Save token to all Admin accounts so notifications reach any logged-in admin device
+    const admins = await prisma.admin.findMany();
+
+    if (admins.length > 0) {
+      for (const admin of admins) {
+        if (!admin.fcmTokens.includes(token)) {
+          // Add token, deduplicate, keep last 5
+          const updatedTokens = Array.from(new Set([...admin.fcmTokens, token])).slice(-5);
+          await prisma.admin.update({
+            where: { id: admin.id },
+            data: { fcmTokens: updatedTokens },
+          });
+        }
       }
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, message: "Token registered to admin accounts" });
     } else {
-      return NextResponse.json({ error: 'Admin not found' }, { status: 404 });
+      return NextResponse.json({ error: "No admin accounts found" }, { status: 404 });
     }
-
-  } catch (error) {
-    console.error('Error saving device token:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (error: any) {
+    console.error("Error saving admin device token:", error);
+    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
