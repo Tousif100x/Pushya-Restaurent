@@ -99,9 +99,22 @@ export function AdminOrderCard({
       : null;
 
   const orderNum = order.id.slice(-6).toUpperCase();
-  const whatsappText = encodeURIComponent(
-    `Hello ${order.customerName}, your order #${orderNum} is being processed. We'll update you shortly!`
-  );
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://pushya-restaurent.vercel.app";
+  const trackingUrl = `${baseUrl}/order/${order.id}`;
+
+  let rawWhatsappMsg = `Hello ${order.customerName}, regarding your order #${orderNum}: Track status live here: ${trackingUrl}`;
+  if (order.status === "PENDING") {
+    rawWhatsappMsg = `Hello ${order.customerName}, we received your order #${orderNum}! We are reviewing it now. Track live: ${trackingUrl}`;
+  } else if (order.status === "APPROVED") {
+    rawWhatsappMsg = `Hello ${order.customerName}, your order #${orderNum} has been ACCEPTED! Cooking has started. Track live: ${trackingUrl}`;
+  } else if (order.status === "MODIFICATION_REQUESTED") {
+    rawWhatsappMsg = `Hello ${order.customerName}, regarding order #${orderNum}: Some items are out of stock. Please tap here to select replacements: ${trackingUrl}`;
+  } else if (order.status === "OUT_FOR_DELIVERY") {
+    rawWhatsappMsg = `Hello ${order.customerName}, your order #${orderNum} is OUT FOR DELIVERY! Track driver live: ${trackingUrl}`;
+  } else if (order.status === "DELIVERED") {
+    rawWhatsappMsg = `Hello ${order.customerName}, your order #${orderNum} was DELIVERED! Thank you for ordering from Pushya Restaurent.`;
+  }
+  const whatsappText = encodeURIComponent(rawWhatsappMsg);
 
   return (
     <div

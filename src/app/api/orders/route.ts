@@ -46,34 +46,31 @@ export async function POST(req: Request) {
       },
     });
 
-    // --- Send Push Notification to all admin devices ---
+    // --- Trigger Instant Telegram Alert to Restaurant Owner Phone ---
     try {
-      notificationProvider.initBackend();
-      
-      const admins = await prisma.admin.findMany({
-        select: { fcmTokens: true },
+      const orderNum = order.id.slice(-6).toUpperCase();
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://pushya-restaurent.vercel.app";
+      const trackingUrl = `${baseUrl}/order/${order.id}`;
+
+      await (notificationProvider as any).sendOrderAlert({
+        orderNum,
+        customerName,
+        customerPhone,
+        totalAmount,
+        itemsCount: items.length,
+        address: formattedAddress || customerAddress,
+        items: items.map((i: any) => ({ name: i.name, quantity: i.quantity, price: i.price })),
+        trackingUrl,
       });
 
-      const allTokens = Array.from(
-        new Set(admins.flatMap((a) => a.fcmTokens || []).filter(Boolean))
-      );
-
-      if (allTokens.length > 0) {
-        const itemCount = items.length;
-        const orderNum = order.id.slice(-6).toUpperCase();
-        
-        await notificationProvider.sendToTokens(allTokens, {
-          title: `🔔 New Order #${orderNum}!`,
-          body: `${customerName} | ${itemCount} item${itemCount > 1 ? 's' : ''} | ₹${totalAmount} | Tap to view`,
-          url: `/admin/dashboard`,
-          data: {
-            orderId: order.id,
-            url: `/admin/dashboard`,
-          }
-        });
-      }
+      // Also trigger push via notificationProvider sendToTokens if configured
+      await notificationProvider.sendToTokens([], {
+        title: `🚨 New Order #${orderNum}!`,
+        body: `${customerName} ordered ${items.length} items (₹${totalAmount})`,
+        url: `/admin/dashboard`,
+      });
     } catch (notifError) {
-      console.error("Push notification failed (non-critical):", notifError);
+      console.error("Telegram notification alert error (non-critical):", notifError);
     }
 
     return NextResponse.json({ success: true, orderId: order.id });
