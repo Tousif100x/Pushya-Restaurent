@@ -43,7 +43,7 @@ export default function AdminLogin() {
       if (res.ok) {
         localStorage.setItem("adminAuth", "true");
         localStorage.setItem("pushya_app_role", "admin");
-        router.push("/admin/dashboard");
+        window.location.href = "/admin/dashboard";
       } else {
         setError(data.error || "Invalid credentials");
       }

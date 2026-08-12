@@ -9,6 +9,19 @@ export async function GET() {
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
 
+    if (session.role === "ADMIN" || session.role === "SUPER_ADMIN") {
+      return NextResponse.json({
+        authenticated: true,
+        user: {
+          id: session.id,
+          phone: session.phone || session.id,
+          name: session.name || "Admin",
+          role: "ADMIN",
+          addresses: [],
+        },
+      });
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: session.id as string },
       select: {
