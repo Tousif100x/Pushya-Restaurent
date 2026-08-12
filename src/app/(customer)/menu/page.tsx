@@ -252,10 +252,11 @@ function MenuPageContent() {
               }
               if (activeFilter === "offers") {
                 return (
-                  category.id.toLowerCase().includes("combo") ||
-                  category.id.toLowerCase().includes("offer") ||
-                  category.name.toLowerCase().includes("combo") ||
-                  category.name.toLowerCase().includes("special")
+                  (category.id.toLowerCase().includes("combo") ||
+                    category.id.toLowerCase().includes("offer") ||
+                    category.name.toLowerCase().includes("combo") ||
+                    category.name.toLowerCase().includes("offer")) &&
+                  !category.id.toLowerCase().includes("hot")
                 );
               }
               return true;
