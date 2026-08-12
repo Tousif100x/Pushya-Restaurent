@@ -158,7 +158,7 @@ export default function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
               {featuredSignatures.map((item, index) => (
                 <SlideUp key={item.id} delay={index * 0.1}>
-                  <Link href="/menu?filter=signature" className="group block">
+                  <Link href={`/menu?item=${item.id}`} className="group block">
                     <div className="relative h-[240px] md:h-[300px] rounded-2xl overflow-hidden mb-4 bg-forest-soft">
                       {item.image && (
                         <Image src={item.image} alt={item.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />

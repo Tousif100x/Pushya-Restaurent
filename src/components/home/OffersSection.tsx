@@ -31,7 +31,7 @@ export default function OffersSection() {
           <div className="space-y-6">
             {offers.map((offer, index) => (
               <SlideUp key={offer.id} delay={index * 0.1}>
-                <Link href="/menu?filter=offers" className="block group">
+                <Link href={`/menu?item=${offer.id}`} className="block group">
                   <Card className="bg-forest-soft border-none text-background overflow-hidden hover:bg-forest-soft/80 transition-colors">
                     <div className="flex flex-col sm:flex-row">
                       <div className="relative w-full sm:w-1/3 h-40 sm:h-auto">

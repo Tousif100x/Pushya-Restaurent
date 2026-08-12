@@ -20,6 +20,7 @@ function MenuPageContent() {
   const [isDbLoaded, setIsDbLoaded] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<"all" | "signature" | "offers">("all");
+  const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
   const didScrollRef = useRef(false);
 
   const searchParams = useSearchParams();
@@ -29,8 +30,12 @@ function MenuPageContent() {
     setIsMounted(true);
     const cat = searchParams.get("category");
     const filter = searchParams.get("filter");
+    const targetItem = searchParams.get("item") || searchParams.get("product");
 
-    if (filter === "signature") {
+    if (targetItem) {
+      setActiveFilter("all");
+      setHighlightedItemId(targetItem);
+    } else if (filter === "signature") {
       setActiveFilter("signature");
     } else if (filter === "offers") {
       setActiveFilter("offers");
@@ -51,21 +56,72 @@ function MenuPageContent() {
       .catch(console.error);
   }, [searchParams]);
 
-  // Auto-scroll to category after data loads
+  // Build active menu category list (DB-driven or fallback)
+  const categoriesToRender = isDbLoaded
+    ? dbCategories.map((c) => ({
+        id: c.slug || c.id,
+        name: c.name,
+        description: c.description || "",
+        image: c.image || "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1000",
+        items: dbProducts.filter((p) => p.categoryId === c.id),
+      }))
+    : fallbackCategories;
+
+  // Auto-scroll to item or category after data loads
   useEffect(() => {
-    if (!isDbLoaded || !activeCategory || didScrollRef.current) return;
-    const scrollToCategory = () => {
-      const el = document.getElementById(activeCategory);
-      if (el) {
-        const y = el.getBoundingClientRect().top + window.scrollY - 140;
-        window.scrollTo({ top: y, behavior: "smooth" });
-        didScrollRef.current = true;
+    if (!isMounted) return;
+
+    const targetItem = searchParams.get("item") || searchParams.get("product");
+    const targetCategory = searchParams.get("category");
+
+    const performScroll = () => {
+      if (targetItem) {
+        // Try direct ID match
+        let targetEl = document.getElementById(`item-${targetItem}`);
+        let matchedId = targetItem;
+
+        if (!targetEl) {
+          // Try slug or normalized name match
+          const normTarget = targetItem.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+          for (const cat of categoriesToRender) {
+            for (const item of cat.items) {
+              const itemIdNorm = (item.id || "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              const itemSlugNorm = (item.slug || "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              const itemNameNorm = (item.name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+              if (itemIdNorm === normTarget || itemSlugNorm === normTarget || itemNameNorm === normTarget) {
+                targetEl = document.getElementById(`item-${item.id}`);
+                matchedId = item.id;
+                break;
+              }
+            }
+            if (targetEl) break;
+          }
+        }
+
+        if (targetEl) {
+          const y = targetEl.getBoundingClientRect().top + window.scrollY - 160;
+          window.scrollTo({ top: y, behavior: "smooth" });
+          setHighlightedItemId(matchedId);
+          setTimeout(() => setHighlightedItemId(null), 3500);
+          didScrollRef.current = true;
+          return;
+        }
+      }
+
+      if (targetCategory && !didScrollRef.current) {
+        const el = document.getElementById(targetCategory);
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.scrollY - 140;
+          window.scrollTo({ top: y, behavior: "smooth" });
+          didScrollRef.current = true;
+        }
       }
     };
-    // Small delay to let the DOM render
-    const timeout = setTimeout(scrollToCategory, 300);
+
+    const timeout = setTimeout(performScroll, 350);
     return () => clearTimeout(timeout);
-  }, [isDbLoaded, activeCategory]);
+  }, [isMounted, isDbLoaded, searchParams, categoriesToRender]);
 
   const getCartQuantity = (itemId: string) => {
     return cartItems.find((i) => i.id === itemId)?.quantity || 0;
@@ -83,17 +139,6 @@ function MenuPageContent() {
       removeItem(item.id);
     }
   };
-
-  // Build active menu category list (DB-driven or fallback)
-  const categoriesToRender = isDbLoaded
-    ? dbCategories.map((c) => ({
-        id: c.slug || c.id,
-        name: c.name,
-        description: c.description || "",
-        image: c.image || "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1000",
-        items: dbProducts.filter((p) => p.categoryId === c.id),
-      }))
-    : fallbackCategories;
 
   if (!isMounted) {
     return (
@@ -248,12 +293,20 @@ function MenuPageContent() {
                     const quantity = getCartQuantity(item.id);
                     const isSignature = item.isSignature || signatureItems.includes(item.id);
                     const isAvailable = item.isActive ?? true;
+                    const isHighlighted =
+                      highlightedItemId === item.id ||
+                      (item.slug && highlightedItemId === item.slug) ||
+                      (highlightedItemId && item.id && item.id.toLowerCase().includes(highlightedItemId.toLowerCase()));
+                    const isHotSpecials = category.id === "hot-specials";
 
                     return (
                       <SlideUp key={item.id} delay={idx * 0.05}>
                         <Card
-                          className={`h-full border transition-all overflow-hidden ${
-                            !isAvailable
+                          id={`item-${item.id}`}
+                          className={`h-full border transition-all duration-500 overflow-hidden ${
+                            isHighlighted
+                              ? "ring-4 ring-gold shadow-2xl scale-[1.02] bg-gold/15 border-gold"
+                              : !isAvailable
                               ? "opacity-60 bg-gray-50 border-gray-200"
                               : "border-border hover:shadow-md bg-white"
                           }`}
@@ -284,6 +337,11 @@ function MenuPageContent() {
                                       </Badge>
                                     )}
                                   </div>
+                                  {item.description && (
+                                    <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5">
+                                      {item.description}
+                                    </p>
+                                  )}
                                   <p className="font-bold text-forest text-base">₹{item.price}</p>
                                 </div>
 
@@ -333,7 +391,7 @@ function MenuPageContent() {
                                     className="object-cover"
                                   />
                                 </div>
-                              ) : (
+                              ) : isHotSpecials ? null : (
                                 <div className="relative w-28 h-28 rounded-xl bg-muted flex items-center justify-center shrink-0">
                                   <span className="text-muted-foreground text-[10px] text-center p-2">
                                     Fresh Prepared

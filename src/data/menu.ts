@@ -60,26 +60,26 @@ export const services = [
 
 export const offers = [
   {
-    id: "sunday-combo",
+    id: "sunday-special-combo",
     title: "Sunday Special Combo",
-    price: 199,
-    description: "Pizza, Sandwich, French Fries, Veg fried Momos, Cold Drink (Free)",
-    note: "Available Only on Sunday (Parcel Charge: ₹20 Extra)",
+    price: 219,
+    description: "1 Pizza, 1 Sandwich, French Fries, Veg Fried Momos, Cold Drink FREE",
+    note: "₹199 + ₹20 parcel charge",
     image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=800&auto=format&fit=crop",
   },
   {
-    id: "chinese-combo",
-    title: "Chinese Combo",
-    price: 149,
-    description: "Noodles, Manchurian, Momos, Chutney, Free Idli, Cold Drink (Free)",
-    note: "Available on Saturday & Sunday (Parcel Charge: ₹10 Extra)",
+    id: "chinese-combo-offer",
+    title: "Chinese Combo Offer",
+    price: 169,
+    description: "Noodles, Manchurian, Momos, Fried Idli, Cold Drink FREE",
+    note: "₹149 + ₹20 parcel charge",
     image: "https://images.unsplash.com/photo-1585032226651-759b368d7246?q=80&w=800&auto=format&fit=crop",
   },
   {
     id: "bhojan-thali",
     title: "Unlimited Bhojan Thali",
     price: 99,
-    description: "Unlimited Home Style Meal (On the shop delivery 120)",
+    description: "Unlimited Home Style Meal (On shop delivery 120)",
     color: "bg-orange-500",
     image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?q=80&w=800&auto=format&fit=crop",
   }
@@ -255,6 +255,32 @@ export const menuCategories = [
       { id: "vada-pav", name: "Vada Pav", price: 35, isVeg: true },
       { id: "hot-dog", name: "Hot Dog", price: 59, isVeg: true },
       { id: "dahi-shole", name: "Dahi Shole", price: 79, isVeg: true },
+    ]
+  },
+  {
+    id: "combos-offers",
+    name: "Combos & Offers",
+    description: "Hand-picked money saver combos crafted for the ultimate feast.",
+    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=800&auto=format&fit=crop",
+    items: [
+      {
+        id: "sunday-special-combo",
+        name: "Sunday Special Combo",
+        price: 219,
+        description: "1 Pizza, 1 Sandwich, French Fries, Veg Fried Momos + Cold Drink FREE (₹199 + ₹20 parcel charge)",
+        isVeg: true,
+        isSignature: true,
+        image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=800&auto=format&fit=crop"
+      },
+      {
+        id: "chinese-combo-offer",
+        name: "Chinese Combo Offer",
+        price: 169,
+        description: "Noodles, Manchurian, Momos, Fried Idli + Cold Drink FREE (₹149 + ₹20 parcel charge)",
+        isVeg: true,
+        isSignature: true,
+        image: "https://images.unsplash.com/photo-1585032226651-759b368d7246?q=80&w=800&auto=format&fit=crop"
+      }
     ]
   },
   {
