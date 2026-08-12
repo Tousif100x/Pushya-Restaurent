@@ -442,10 +442,10 @@ export default function CheckoutPage() {
                     {(selectedAddressId === "new" || savedAddresses.length === 0) && (
                       <div className="space-y-2 pt-2 border-t border-border">
                         <Label className="text-xs font-semibold uppercase tracking-wider text-forest block">
-                          Delivery Location — Pin on Map *
+                          Delivery Location *
                         </Label>
                         <p className="text-xs text-muted-foreground">
-                          Tap or drag the marker to your exact building. Address will be auto-filled.
+                          Choose your location via GPS, place search, or by picking on map.
                         </p>
                         <LocationPicker
                           onLocationSelect={(loc) => setLocation(loc)}

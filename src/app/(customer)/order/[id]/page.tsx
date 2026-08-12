@@ -139,6 +139,21 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
     }
   };
 
+  const handleConfirmDelivered = async () => {
+    try {
+      const res = await fetch(`/api/orders/${unwrappedParams.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "DELIVERED" }),
+      });
+      if (res.ok) {
+        setOrder((prev: any) => (prev ? { ...prev, status: "DELIVERED" } : null));
+      }
+    } catch (error) {
+      console.error("Confirm delivery error:", error);
+    }
+  };
+
   if (loading) {
     return <div className="min-h-screen pt-32 flex justify-center text-forest">Loading order details...</div>;
   }
@@ -344,11 +359,20 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                     </>
                   )}
                   {order.status === "OUT_FOR_DELIVERY" && (
-                    <>
+                    <div className="space-y-4">
                       <MapPin className="h-16 w-16 mx-auto text-blue-400 animate-bounce" />
                       <h2 className="text-2xl font-bold font-serif text-blue-400">Out for Delivery! 🛵</h2>
                       <p className="text-background/80">Your order is on the way. Should be there soon!</p>
-                    </>
+                      
+                      <div className="pt-2">
+                        <Button
+                          onClick={handleConfirmDelivered}
+                          className="bg-green-500 hover:bg-green-600 text-white font-bold h-12 px-6 rounded-xl shadow-lg w-full sm:w-auto text-sm"
+                        >
+                          <CheckCircle2 className="mr-2 h-5 w-5" /> I Have Received My Order (Confirm Delivery)
+                        </Button>
+                      </div>
+                    </div>
                   )}
                   {order.status === "DELIVERED" && (
                     <>

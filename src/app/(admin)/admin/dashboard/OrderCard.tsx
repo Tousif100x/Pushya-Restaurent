@@ -360,21 +360,18 @@ export function AdminOrderCard({
           )}
 
           {order.status === "OUT_FOR_DELIVERY" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-border/40">
+            <div className="space-y-2 pt-2 border-t border-border/40">
+              <div className="p-2.5 bg-indigo-50 border border-indigo-200 rounded-lg text-indigo-800 text-xs font-semibold flex items-center justify-between">
+                <span>🛵 Out for Delivery</span>
+                <span className="text-[11px] font-normal text-indigo-600">Awaiting customer confirmation</span>
+              </div>
               {googleMapsUrl && (
                 <a href={googleMapsUrl} target="_blank" rel="noreferrer" className="block">
                   <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white h-10 gap-1">
-                    <Navigation className="h-4 w-4 shrink-0" /> Navigate Now
+                    <Navigation className="h-4 w-4 shrink-0" /> Navigate to Customer
                   </Button>
                 </a>
               )}
-              <Button
-                size="sm"
-                onClick={() => onUpdateStatus(order.id, "DELIVERED")}
-                className="w-full bg-green-600 hover:bg-green-700 text-white h-10 gap-1"
-              >
-                <CheckCircle2 className="h-4 w-4 shrink-0" /> Mark Delivered
-              </Button>
             </div>
           )}
         </div>

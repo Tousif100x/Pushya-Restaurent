@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 import { notificationProvider } from "@/lib/notifications";
 
@@ -58,6 +59,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const { id } = await params;
     const body = await req.json();
     const { status, modificationNote, paymentStatus, paidAmount, paidAt, razorpayOrderId, razorpayPaymentId, razorpaySignature } = body;
+
+    // --- SECURITY RESTRICTION: Only customer can mark order as DELIVERED ---
+    if (status === "DELIVERED") {
+      const cookieStore = await cookies();
+      const adminAuthCookie = cookieStore.get("adminAuth")?.value;
+      const roleHeader = req.headers.get("x-user-role");
+
+      if (adminAuthCookie === "true" || roleHeader === "admin" || roleHeader === "ADMIN") {
+        return NextResponse.json(
+          { error: "Only the customer can mark an order as DELIVERED." },
+          { status: 403 }
+        );
+      }
+    }
 
     // Build the update payload
     const updateData: any = {};
