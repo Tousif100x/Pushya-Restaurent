@@ -21,8 +21,8 @@ export default function OffersSection() {
                 Enjoy our hand-picked combinations tailored for the perfect meal experience. Whether it's a weekend craving or a daily necessity, we have something special for you.
               </p>
               <div className="pt-4">
-                 <Button asChild className="bg-gold text-forest hover:bg-gold/90 rounded-full">
-                    <Link href="/menu">Order Now</Link>
+                 <Button asChild className="bg-gold text-forest hover:bg-gold/90 font-bold rounded-full px-6">
+                    <Link href="/menu?filter=offers">Order Offers & Combos</Link>
                   </Button>
               </div>
             </div>
@@ -31,26 +31,28 @@ export default function OffersSection() {
           <div className="space-y-6">
             {offers.map((offer, index) => (
               <SlideUp key={offer.id} delay={index * 0.1}>
-                <Card className="bg-forest-soft border-none text-background overflow-hidden hover:bg-forest-soft/80 transition-colors">
-                  <div className="flex flex-col sm:flex-row">
-                    <div className="relative w-full sm:w-1/3 h-40 sm:h-auto">
-                      <Image 
-                        src={offer.image} 
-                        alt={offer.title} 
-                        fill 
-                        className="object-cover" 
-                      />
-                    </div>
-                    <div className="p-6 sm:w-2/3">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-serif text-xl font-bold">{offer.title}</h3>
-                        <span className="text-gold font-bold text-xl">₹{offer.price}</span>
+                <Link href="/menu?filter=offers" className="block group">
+                  <Card className="bg-forest-soft border-none text-background overflow-hidden hover:bg-forest-soft/80 transition-colors">
+                    <div className="flex flex-col sm:flex-row">
+                      <div className="relative w-full sm:w-1/3 h-40 sm:h-auto">
+                        <Image 
+                          src={offer.image} 
+                          alt={offer.title} 
+                          fill 
+                          className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                        />
                       </div>
-                      <p className="text-sm text-background/70 mb-3">{offer.description}</p>
-                      <Badge variant="secondary" className="bg-forest text-gold border-gold/20">{offer.note}</Badge>
+                      <div className="p-6 sm:w-2/3">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-serif text-xl font-bold group-hover:text-gold transition-colors">{offer.title}</h3>
+                          <span className="text-gold font-bold text-xl">₹{offer.price}</span>
+                        </div>
+                        <p className="text-sm text-background/70 mb-3">{offer.description}</p>
+                        <Badge variant="secondary" className="bg-forest text-gold border-gold/20">{offer.note}</Badge>
+                      </div>
                     </div>
-                  </div>
-                </Card>
+                  </Card>
+                </Link>
               </SlideUp>
             ))}
           </div>

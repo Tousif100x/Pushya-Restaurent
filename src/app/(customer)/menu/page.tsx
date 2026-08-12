@@ -19,6 +19,7 @@ function MenuPageContent() {
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [isDbLoaded, setIsDbLoaded] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<"all" | "signature" | "offers">("all");
   const didScrollRef = useRef(false);
 
   const searchParams = useSearchParams();
@@ -27,7 +28,15 @@ function MenuPageContent() {
   useEffect(() => {
     setIsMounted(true);
     const cat = searchParams.get("category");
-    if (cat) setActiveCategory(cat);
+    const filter = searchParams.get("filter");
+
+    if (filter === "signature") {
+      setActiveFilter("signature");
+    } else if (filter === "offers") {
+      setActiveFilter("offers");
+    } else if (cat) {
+      setActiveCategory(cat);
+    }
 
     // Fetch live menu from DB
     fetch("/api/admin/menu")
@@ -132,12 +141,49 @@ function MenuPageContent() {
         {/* Sticky Categories Nav */}
         <div className="sticky top-16 sm:top-20 z-40 bg-background/90 backdrop-blur-md py-3 mb-8 -mx-4 px-4 overflow-x-auto border-b border-border">
           <div className="flex gap-2">
+            <Button
+              variant={activeFilter === "all" ? "default" : "outline"}
+              className={`rounded-full whitespace-nowrap text-xs font-semibold ${
+                activeFilter === "all"
+                  ? "bg-forest hover:bg-forest/90 text-white"
+                  : "bg-background hover:bg-forest hover:text-background border-border"
+              }`}
+              onClick={() => setActiveFilter("all")}
+            >
+              All Menu
+            </Button>
+
+            <Button
+              variant={activeFilter === "signature" ? "default" : "outline"}
+              className={`rounded-full whitespace-nowrap text-xs font-semibold ${
+                activeFilter === "signature"
+                  ? "bg-gold hover:bg-gold/90 text-forest font-bold shadow-xs"
+                  : "bg-background hover:bg-gold hover:text-forest border-gold/40 text-forest"
+              }`}
+              onClick={() => setActiveFilter("signature")}
+            >
+              ⭐ Signature Dishes
+            </Button>
+
+            <Button
+              variant={activeFilter === "offers" ? "default" : "outline"}
+              className={`rounded-full whitespace-nowrap text-xs font-semibold ${
+                activeFilter === "offers"
+                  ? "bg-forest-soft text-gold font-bold shadow-xs"
+                  : "bg-background hover:bg-forest-soft hover:text-gold border-forest/30"
+              }`}
+              onClick={() => setActiveFilter("offers")}
+            >
+              🎁 Offers & Combos
+            </Button>
+
             {categoriesToRender.map((category) => (
               <Button
                 key={category.id}
                 variant="outline"
                 className="rounded-full whitespace-nowrap bg-background hover:bg-forest hover:text-background border-border transition-colors text-xs font-semibold"
                 onClick={() => {
+                  setActiveFilter("all");
                   const el = document.getElementById(category.id);
                   const y = el ? el.getBoundingClientRect().top + window.scrollY - 140 : 0;
                   window.scrollTo({ top: y, behavior: "smooth" });
@@ -152,9 +198,23 @@ function MenuPageContent() {
         {/* Menu Sections */}
         <div className="space-y-16 sm:space-y-24">
           {categoriesToRender.map((category) => {
-            const filteredItems = category.items.filter((item: any) =>
-              item.name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
+            const filteredItems = category.items.filter((item: any) => {
+              const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+              if (!matchesSearch) return false;
+
+              if (activeFilter === "signature") {
+                return item.isSignature || signatureItems.includes(item.id);
+              }
+              if (activeFilter === "offers") {
+                return (
+                  category.id.toLowerCase().includes("combo") ||
+                  category.id.toLowerCase().includes("offer") ||
+                  category.name.toLowerCase().includes("combo") ||
+                  category.name.toLowerCase().includes("special")
+                );
+              }
+              return true;
+            });
 
             if (filteredItems.length === 0) return null;
 

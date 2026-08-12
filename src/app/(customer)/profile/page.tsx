@@ -426,7 +426,32 @@ export default function ProfilePage() {
                           <p className="text-sm font-bold text-gold">₹{order.totalAmount}</p>
                         </div>
 
-                        <div className="flex gap-2 shrink-0">
+                        <div className="flex flex-wrap gap-2 shrink-0">
+                          {order.status === "OUT_FOR_DELIVERY" && (
+                            <Button
+                              size="sm"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1"
+                              onClick={async () => {
+                                try {
+                                  const res = await fetch(`/api/orders/${order.id}`, {
+                                    method: "PATCH",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ status: "DELIVERED", isCustomerConfirmation: true }),
+                                  });
+                                  if (res.ok) {
+                                    setOrders((prev) =>
+                                      prev.map((o) => (o.id === order.id ? { ...o, status: "DELIVERED" } : o))
+                                    );
+                                    toast.success("Order marked as Delivered!");
+                                  }
+                                } catch {
+                                  toast.error("Failed to mark delivered.");
+                                }
+                              }}
+                            >
+                              <Check className="w-3.5 h-3.5" /> Confirm Delivered
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="outline"

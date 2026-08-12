@@ -62,11 +62,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     // --- SECURITY RESTRICTION: Only customer can mark order as DELIVERED ---
     if (status === "DELIVERED") {
-      const cookieStore = await cookies();
-      const adminAuthCookie = cookieStore.get("adminAuth")?.value;
-      const roleHeader = req.headers.get("x-user-role");
+      const isCustomerConfirmation = body.isCustomerConfirmation === true;
+      const isAdminAction = body.isAdminAction === true || req.headers.get("x-user-role") === "admin";
 
-      if (adminAuthCookie === "true" || roleHeader === "admin" || roleHeader === "ADMIN") {
+      if (isAdminAction && !isCustomerConfirmation) {
         return NextResponse.json(
           { error: "Only the customer can mark an order as DELIVERED." },
           { status: 403 }

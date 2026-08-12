@@ -4,8 +4,9 @@ import { useEffect, useState, use } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/animations/Motion";
-import { CheckCircle2, Clock, MapPin, PhoneCall, AlertTriangle, ArrowLeft, Bell } from "lucide-react";
+import { CheckCircle2, Clock, MapPin, PhoneCall, AlertTriangle, ArrowLeft, Bell, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { siteConfig as restaurantDetails } from "@/lib/siteConfig";
 import { requestNotificationPermission, onMessageListener } from "@/lib/notifications/firebase-client";
 
@@ -139,18 +140,28 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
     }
   };
 
+  const [isConfirmingDelivery, setIsConfirmingDelivery] = useState(false);
+
   const handleConfirmDelivered = async () => {
+    setIsConfirmingDelivery(true);
     try {
       const res = await fetch(`/api/orders/${unwrappedParams.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "DELIVERED" }),
+        body: JSON.stringify({ status: "DELIVERED", isCustomerConfirmation: true }),
       });
+      const data = await res.json();
       if (res.ok) {
         setOrder((prev: any) => (prev ? { ...prev, status: "DELIVERED" } : null));
+        toast.success("Order marked as Delivered! Thank you for ordering!");
+      } else {
+        toast.error(data.error || "Failed to mark order as delivered.");
       }
     } catch (error) {
       console.error("Confirm delivery error:", error);
+      toast.error("Network error confirming delivery.");
+    } finally {
+      setIsConfirmingDelivery(false);
     }
   };
 
@@ -367,9 +378,15 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                       <div className="pt-2">
                         <Button
                           onClick={handleConfirmDelivered}
-                          className="bg-green-500 hover:bg-green-600 text-white font-bold h-12 px-6 rounded-xl shadow-lg w-full sm:w-auto text-sm"
+                          disabled={isConfirmingDelivery}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-6 rounded-xl shadow-lg w-full sm:w-auto text-sm gap-2"
                         >
-                          <CheckCircle2 className="mr-2 h-5 w-5" /> I Have Received My Order (Confirm Delivery)
+                          {isConfirmingDelivery ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="h-5 w-5 text-gold" />
+                          )}
+                          I Have Received My Order (Confirm Delivery)
                         </Button>
                       </div>
                     </div>
