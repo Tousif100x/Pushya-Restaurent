@@ -202,61 +202,7 @@ export default function AdminDashboard() {
           </Button>
         </div>
 
-        {/* ── Admin Push Notification Control Banner ── */}
-        {notifState === "granted" ? (
-          <div className="flex items-center justify-between gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 shadow-xs">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Background Order Alerts Active
-                </p>
-                <p className="text-[11px] text-emerald-700 truncate">
-                  Push notifications enabled for this device — alerts arrive even when app is closed.
-                </p>
-              </div>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleTestPush}
-              disabled={isTestingPush}
-              className="border-emerald-400 text-emerald-800 hover:bg-emerald-100 text-xs shrink-0 h-8 gap-1"
-            >
-              <Send className="w-3 h-3 text-emerald-600" />
-              {isTestingPush ? "Sending..." : "Test Push"}
-            </Button>
-          </div>
-        ) : notifState === "denied" ? (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 space-y-1 text-xs text-red-700">
-            <p className="font-bold flex items-center gap-1.5 text-red-800">
-              <BellOff className="w-4 h-4 text-red-500" /> Order Alerts Blocked on this Device
-            </p>
-            <p>You will not receive background notifications for new orders because permissions are blocked.</p>
-            <p className="font-medium mt-1">📱 <strong>Android Chrome:</strong> Tap ⋮ menu → Site settings → Notifications → Allow → Reload page.</p>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between gap-3 bg-amber-50 border border-amber-300 rounded-xl p-3.5 shadow-xs">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <Bell className="w-4 h-4 text-amber-600 shrink-0 animate-bounce" />
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-amber-900">Enable Order Push Notifications</p>
-                <p className="text-[11px] text-amber-700 truncate">
-                  Get instant loud push alerts on your phone screen when new orders arrive!
-                </p>
-              </div>
-            </div>
-            <Button
-              size="sm"
-              onClick={handleEnablePush}
-              disabled={isRegistering}
-              className="bg-amber-600 hover:bg-amber-700 text-white text-xs shrink-0 h-8 gap-1 font-semibold"
-            >
-              <Bell className="w-3 h-3" />
-              {isRegistering ? "Enabling..." : "Enable Now"}
-            </Button>
-          </div>
-        )}
+
 
         {/* Stats Grid */}
         <StaggerContainer className="grid grid-cols-2 lg:grid-cols-4 gap-3">
