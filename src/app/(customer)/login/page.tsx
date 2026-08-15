@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,14 @@ import Link from "next/link";
 import { Phone, Lock, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTarget = searchParams.get("redirect") || "/home";
   const { checkAuth } = useAuthStore();
 
   // Reset password states
@@ -86,7 +88,7 @@ export default function LoginPage() {
       if (res.ok) {
         await checkAuth();
         toast.success(`Welcome back!`);
-        router.push("/home");
+        router.push(redirectTarget);
       } else {
         toast.error(data.error || "Login failed");
       }
@@ -260,5 +262,13 @@ export default function LoginPage() {
         )}
       </FadeIn>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-forest">Loading...</div>}>
+      <LoginPageContent />
+    </Suspense>
   );
 }

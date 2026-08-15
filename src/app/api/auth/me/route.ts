@@ -22,7 +22,7 @@ export async function GET() {
       });
     }
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: session.id as string },
       select: {
         id: true,
@@ -36,7 +36,36 @@ export async function GET() {
       },
     });
 
+    if (!user && session.phone) {
+      user = await prisma.user.findUnique({
+        where: { phone: session.phone as string },
+        select: {
+          id: true,
+          phone: true,
+          name: true,
+          role: true,
+          addresses: {
+            orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
+          },
+          createdAt: true,
+        },
+      });
+    }
+
     if (!user) {
+      // Fallback to session metadata if valid session token exists
+      if (session.id && session.phone) {
+        return NextResponse.json({
+          authenticated: true,
+          user: {
+            id: session.id,
+            phone: session.phone,
+            name: session.name || "Customer",
+            role: session.role || "USER",
+            addresses: [],
+          },
+        });
+      }
       await clearSession();
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }

@@ -25,8 +25,9 @@ export async function middleware(request: NextRequest) {
   if (isCustomerProtected) {
     const sessionCookie = request.cookies.get("session")?.value;
     const session = sessionCookie ? await decrypt(sessionCookie) : null;
+    const role = (session?.role || "").toString().toUpperCase();
 
-    if (!session || session.role !== "USER") {
+    if (!session || (role !== "USER" && role !== "ADMIN" && role !== "SUPER_ADMIN")) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
